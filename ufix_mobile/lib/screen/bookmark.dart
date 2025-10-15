@@ -2,6 +2,8 @@
 import 'package:flutter/material.dart';
 
 class Bookmark extends StatelessWidget {
+  const Bookmark({super.key});
+  
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -73,7 +75,7 @@ class Bookmark extends StatelessWidget {
                             decoration: InputDecoration(
                               hintText: 'Cari Video bookmark...',
                               hintStyle: TextStyle(
-                                color: Colors.black.withOpacity(0.40),
+                                color: Colors.black.withValues(alpha: 0.40),
                                 fontSize: 14,
                                 fontFamily: 'Jost',
                                 fontWeight: FontWeight.w600,

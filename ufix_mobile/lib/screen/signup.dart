@@ -1,7 +1,9 @@
-// lib/screens/signin_screen.dart
+// lib/screens/signup_screen.dart
 import 'package:flutter/material.dart';
 
-class SigninScreen extends StatelessWidget {
+class SignupScreen extends StatelessWidget {
+  const SignupScreen({super.key});
+  
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -40,7 +42,7 @@ class SigninScreen extends StatelessWidget {
             ),
             const SizedBox(height: 50),
             Expanded(
-              child: Container(
+              child: SizedBox(
                 width: double.infinity,
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
@@ -48,7 +50,7 @@ class SigninScreen extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
                     // Welcome text
-                    Container(
+                    SizedBox(
                       width: 330,
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
@@ -79,7 +81,7 @@ class SigninScreen extends StatelessWidget {
                     ),
                     const SizedBox(height: 43),
                     // Email field
-                    Container(
+                    SizedBox(
                       width: 350,
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
@@ -122,7 +124,7 @@ class SigninScreen extends StatelessWidget {
                     ),
                     const SizedBox(height: 20),
                     // Display Name field
-                    Container(
+                    SizedBox(
                       width: 350,
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
@@ -165,7 +167,7 @@ class SigninScreen extends StatelessWidget {
                     ),
                     const SizedBox(height: 20),
                     // Password field
-                    Container(
+                    SizedBox(
                       width: 350,
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
@@ -209,7 +211,7 @@ class SigninScreen extends StatelessWidget {
                     ),
                     const SizedBox(height: 20),
                     // Repeat Password field
-                    Container(
+                    SizedBox(
                       width: 350,
                       child: Column(
                         mainAxisSize: MainAxisSize.min,

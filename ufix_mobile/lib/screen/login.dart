@@ -2,6 +2,8 @@
 import 'package:flutter/material.dart';
 
 class ScreenLogin extends StatelessWidget {
+  const ScreenLogin({super.key});
+  
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -40,7 +42,7 @@ class ScreenLogin extends StatelessWidget {
             ),
             const SizedBox(height: 65),
             Expanded(
-              child: Container(
+              child: SizedBox(
                 width: double.infinity,
                 child: Column(
                   mainAxisSize: MainAxisSize.min,

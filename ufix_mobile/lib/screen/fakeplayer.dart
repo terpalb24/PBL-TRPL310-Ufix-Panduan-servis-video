@@ -2,6 +2,8 @@
 import 'package:flutter/material.dart';
 
 class FakePlayer extends StatelessWidget {
+  const FakePlayer({super.key});
+  
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -29,9 +31,9 @@ class FakePlayer extends StatelessWidget {
               width: MediaQuery.of(context).size.width,
               padding: const EdgeInsets.symmetric(horizontal: 17, vertical: 14),
               decoration: BoxDecoration(
-                color: Colors.black.withOpacity(0.7),
+                color: Colors.black.withValues(alpha: 0.7),
                 border: Border.all(
-                  color: Colors.white.withOpacity(0.3),
+                  color: Colors.white.withValues(alpha: 0.3),
                 ),
               ),
               child: Column(
@@ -64,7 +66,7 @@ class FakePlayer extends StatelessWidget {
           Positioned(
             right: 20,
             top: MediaQuery.of(context).size.height / 2 - 100,
-            child: Container(
+            child: SizedBox(
               width: 64,
               child: Column(
                 children: [

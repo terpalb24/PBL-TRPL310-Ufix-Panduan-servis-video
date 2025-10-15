@@ -2,6 +2,8 @@
 import 'package:flutter/material.dart';
 
 class Homepage extends StatelessWidget {
+ const Homepage({super.key});
+ 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -18,7 +20,7 @@ class Homepage extends StatelessWidget {
           Positioned(
             left: 0,
             top: 90,
-            child: Container(
+            child: SizedBox(
               width: MediaQuery.of(context).size.width,
               child: Column(
                 mainAxisSize: MainAxisSize.min,
@@ -71,7 +73,7 @@ class Homepage extends StatelessWidget {
                   ),
                   
                   // Tab buttons
-                  Container(
+                  SizedBox(
                     width: double.infinity,
                     child: Row(
                       children: [

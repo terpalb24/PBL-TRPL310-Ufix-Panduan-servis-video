@@ -2,6 +2,8 @@
 import 'package:flutter/material.dart';
 
 class SearchedVideos extends StatelessWidget {
+  const SearchedVideos({super.key});
+  
   @override
   Widget build(BuildContext context) {
     return Scaffold(

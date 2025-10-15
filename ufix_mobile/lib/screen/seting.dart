@@ -2,6 +2,8 @@
 import 'package:flutter/material.dart';
 
 class Settings extends StatelessWidget {
+  const Settings({super.key});
+  
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -54,7 +56,7 @@ class Settings extends StatelessWidget {
           Positioned(
             top: 70,
             left: 0,
-            child: Container(
+            child: SizedBox(
               width: MediaQuery.of(context).size.width,
               height: MediaQuery.of(context).size.height - 145,
               child: SingleChildScrollView(
@@ -266,7 +268,7 @@ class Settings extends StatelessWidget {
             onChanged: (bool newValue) {
               // Handle toggle change
             },
-            activeColor: const Color(0xFF3A567A),
+            activeThumbColor: const Color(0xFF3A567A),
           ),
         ],
       ),

@@ -17,29 +17,25 @@ class ScreenLogin extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Back button container
-            Container(
-              width: 85,
-              height: 64,
-              padding: const EdgeInsets.all(32),
-              decoration: ShapeDecoration(
-                color: const Color(0xFFF7F7FA),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
                 shape: RoundedRectangleBorder(
                   side: BorderSide(
                     width: 1,
                     color: const Color(0x19183A64),
                   ),
                   borderRadius: const BorderRadius.only(
-                    bottomRight: Radius.circular(30),
+                    bottomRight: Radius.circular(20),
                   ),
                 ),
+                minimumSize: Size(75, 75),
+                backgroundColor: Color(0xFFF7F7FA),
+                padding: EdgeInsets.all(8),
+                foregroundColor: Color(0xFF4B92DB),
+                shadowColor: Color(0xD8183A64)
               ),
-              child: GestureDetector(
-                onTap: () {
-                  Navigator.pop(context); // Go back to previous screen
-                },
-                child: Icon(Icons.arrow_back, color: const Color(0xFF183A64)),
-              ),
-            ),
+              onPressed: () {Navigator.pop(context);}, 
+              child: Icon(Icons.arrow_back_ios)),
             const SizedBox(height: 65),
             Expanded(
               child: SizedBox(

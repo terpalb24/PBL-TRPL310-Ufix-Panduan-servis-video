@@ -1,5 +1,6 @@
 // lib/screens/welcome_unlogged.dart
 import 'package:flutter/material.dart';
+import 'login.dart';
 
 class WelcomeUnlogged extends StatelessWidget {
   @override
@@ -112,35 +113,44 @@ class WelcomeUnlogged extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 7),  // ADD SPACING
-                  Container(
-                    width: 264,
-                    height: 39,
-                    padding: const EdgeInsets.symmetric(horizontal: 100, vertical: 6),
-                    decoration: ShapeDecoration(
-                      color: const Color(0xFF4B92DB),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(20),
+                  // Login button navigates to the login screen
+                  GestureDetector(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => ScreenLogin()),
+                      );
+                    },
+                    child: Container(
+                      width: 264,
+                      height: 39,
+                      padding: const EdgeInsets.symmetric(horizontal: 100, vertical: 6),
+                      decoration: ShapeDecoration(
+                        color: const Color(0xFF4B92DB),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(20),
+                        ),
                       ),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [  // REMOVE 'spacing: 10'
-                        SizedBox(
-                          width: 64,
-                          height: 27,
-                          child: Text(
-                            'Login',
-                            style: TextStyle(
-                              color: const Color(0xFFF7F7F7),
-                              fontSize: 20,
-                              fontFamily: 'Kodchasan',
-                              fontWeight: FontWeight.w400,
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          SizedBox(
+                            width: 64,
+                            height: 27,
+                            child: Text(
+                              'Login',
+                              style: TextStyle(
+                                color: const Color(0xFFF7F7F7),
+                                fontSize: 20,
+                                fontFamily: 'Kodchasan',
+                                fontWeight: FontWeight.w400,
+                              ),
                             ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
                 ],

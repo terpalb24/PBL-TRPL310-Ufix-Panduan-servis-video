@@ -36,7 +36,7 @@ class WelcomeLoggedin extends StatelessWidget {
                     height: 182.09,
                     decoration: const BoxDecoration(
                       image: DecorationImage(
-                        image: NetworkImage("https://placehold.co/348x182"),
+                        image: AssetImage('Asset/logo.png'),
                         fit: BoxFit.cover,
                       ),
                     ),

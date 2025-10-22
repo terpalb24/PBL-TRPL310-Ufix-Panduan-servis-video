@@ -3,7 +3,7 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 
 // Register function
-const register = async (req, res) => {
+const signUp = async (req, res) => {
   try {
     const { email, displayName, password } = req.body;
 
@@ -157,7 +157,7 @@ const getProfile = (req, res) => {
 };
 
 module.exports = {
-  register,
+  signUp,
   login,
   getProfile
 };

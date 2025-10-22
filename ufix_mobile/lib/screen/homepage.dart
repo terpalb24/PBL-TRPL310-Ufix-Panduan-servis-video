@@ -214,121 +214,18 @@ class Homepage extends StatelessWidget {
               ),
             ),
           ),
-
-          // App bar
-          Positioned(
-            left: 0,
-            top: 20,
-            child: Container(
-              width: MediaQuery.of(context).size.width,
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  // Logo
-                  Container(
-                    width: 105,
-                    height: 55,
-                    decoration: BoxDecoration(
-                      image: DecorationImage(
-                        image: NetworkImage("https://placehold.co/105x55"),
-                        fit: BoxFit.cover,
-                      ),
-                    ),
-                  ),
-
-                  // Menu dots
-                  Container(
-                    width: 55,
-                    height: 58,
-                    decoration: ShapeDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment(-0.00, 0.92),
-                        end: Alignment(1.00, 0.08),
-                        colors: [
-                          const Color(0xFFDDF7FE),
-                          const Color(0xFFF7F7FA),
-                        ],
-                      ),
-                      shape: RoundedRectangleBorder(
-                        side: BorderSide(
-                          width: 1,
-                          color: const Color(0x194B92DB),
-                        ),
-                        borderRadius: BorderRadius.circular(15),
-                      ),
-                    ),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Container(
-                          width: 10,
-                          height: 10,
-                          decoration: ShapeDecoration(
-                            color: const Color(0xFF3A567A),
-                            shape: OvalBorder(),
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        Container(
-                          width: 10,
-                          height: 10,
-                          decoration: ShapeDecoration(
-                            color: const Color(0xFF3A567A),
-                            shape: OvalBorder(),
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        Container(
-                          width: 10,
-                          height: 10,
-                          decoration: ShapeDecoration(
-                            color: const Color(0xFF3A567A),
-                            shape: OvalBorder(),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-
-                  // Profile/Other icon
-                  Container(
-                    width: 59,
-                    height: 58,
-                    decoration: ShapeDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment(-0.00, 0.92),
-                        end: Alignment(1.00, 0.08),
-                        colors: [
-                          const Color(0xFFDDF7FE),
-                          const Color(0xFFF7F7FA),
-                        ],
-                      ),
-                      shape: RoundedRectangleBorder(
-                        side: BorderSide(
-                          width: 1,
-                          color: const Color(0x194B92DB),
-                        ),
-                        borderRadius: BorderRadius.circular(15),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
         ],
       ),
-
-  bottomNavigationBar: BottomNavigationBar(
-    backgroundColor: Color(0xFF3A567A),
-    selectedItemColor: Color(0XFFFF7F00),
-    unselectedItemColor: Color(0XFFF7F7FA),
-    items: [
-      BottomNavigationBarItem(icon: Icon(Icons.home),activeIcon: Icon(Icons.home_filled), label: 'Home'),
-      BottomNavigationBarItem(icon: Icon(Icons.search),activeIcon: Icon(Icons.search), label: 'search'),
-      BottomNavigationBarItem(icon: Icon(Icons.bookmark),activeIcon: Icon(Icons.bookmark), label: 'bookmark')
-    ]),
+      bottomNavigationBar: BottomNavigationBar(
+        backgroundColor: Color(0xFF3A567A),
+        selectedItemColor: Color(0XFFFF7F00),
+        unselectedItemColor: Color(0XFFF7F7FA),
+        items: [
+          BottomNavigationBarItem(icon: Icon(Icons.home),activeIcon: Icon(Icons.home_filled), label: 'Home'),
+          BottomNavigationBarItem(icon: Icon(Icons.search),activeIcon: Icon(Icons.search), label: 'search'),
+          BottomNavigationBarItem(icon: Icon(Icons.bookmark),activeIcon: Icon(Icons.bookmark), label: 'bookmark')
+        ],
+      ),
     );
   }
 

@@ -2,6 +2,8 @@
 import 'package:flutter/material.dart';
 
 class Search extends StatelessWidget {
+  const Search({super.key});
+  
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -57,7 +59,7 @@ class Search extends StatelessWidget {
           Positioned(
             left: 0,
             top: 70,
-            child: Container(
+            child: SizedBox(
               width: MediaQuery.of(context).size.width,
               height: MediaQuery.of(context).size.height - 145,
               child: SingleChildScrollView(

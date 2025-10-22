@@ -2,10 +2,10 @@
 import 'package:flutter/material.dart';
 
 // Import all your screen
-import 'screen/welcome-unlogged.dart';
-import 'screen/welcome-loggedin.dart';
+import 'screen/welcome_unlogged.dart';
+import 'screen/welcome_loggedin.dart';
 import 'screen/login.dart';
-import 'screen/signin.dart';
+import 'screen/signup.dart';
 import 'screen/homepage.dart';
 import 'screen/bookmark.dart';
 import 'screen/search.dart';
@@ -19,16 +19,17 @@ void main() {
 }
 
 class MyApp extends StatelessWidget {
+  const MyApp({super.key});  
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Electronics Learning App',
-      home: WelcomeUnlogged(), // Start with welcome screen
+      home: SignupScreen(), // Start with welcome screen
       routes: {
         // Authentication Flow
         '/unlogged': (context) => WelcomeUnlogged(),
         '/login': (context) => ScreenLogin(),
-        '/signup': (context) => SigninScreen(),
+        '/signup': (context) => SignupScreen(),
         '/loggedin': (context) => WelcomeLoggedin(),
         
         // Main App Flow

@@ -5,20 +5,21 @@ const jwt = require('jsonwebtoken');
 // Register function
 const register = async (req, res) => {
   try {
-    const { username, email, password } = req.body;
+    const { email, displayName, password } = req.body;
 
     // Validate input
-    if (!username || !email || !password) {
+    if (!email || !displayName || !password) {
       return res.status(400).json({
         success: false,
-        message: 'Please provide username, email, and password'
+        message: 'Masukan Email, Display Name, Dan Password'
       });
     }
 
     // Check if user already exists
-    const checkUserQuery = 'SELECT * FROM users WHERE email = ? OR username = ?';
-    db.query(checkUserQuery, [email, username], async (err, results) => {
+    const checkUserQuery = 'SELECT * FROM pengguna WHERE email = ?';
+    db.query(checkUserQuery, [email], async (err, results) => {
       if (err) {
+        console.error('Database error in checkUserQuery:', err);
         return res.status(500).json({
           success: false,
           message: 'Database error'
@@ -28,7 +29,7 @@ const register = async (req, res) => {
       if (results.length > 0) {
         return res.status(400).json({
           success: false,
-          message: 'User already exists with this email or username'
+          message: 'Telah ada pengguna dengan email yang sama'
         });
       }
 
@@ -37,12 +38,13 @@ const register = async (req, res) => {
       const hashedPassword = await bcrypt.hash(password, saltRounds);
 
       // Insert new user
-      const insertQuery = 'INSERT INTO users (username, email, password) VALUES (?, ?, ?)';
-      db.query(insertQuery, [username, email, hashedPassword], (err, results) => {
+      const insertQuery = 'INSERT INTO pengguna (email, displayName, password) VALUES (?, ?, ?)';
+      db.query(insertQuery, [email, displayName, hashedPassword], (err, results) => {
         if (err) {
+          console.error('Database error in insertQuery:', err);
           return res.status(500).json({
             success: false,
-            message: 'Error creating user'
+            message: 'Error creating user: ' + err.message
           });
         }
 
@@ -51,21 +53,21 @@ const register = async (req, res) => {
           message: 'User registered successfully',
           user: {
             id: results.insertId,
-            username,
-            email
+            displayName: displayName,  // Fixed: use displayName, not username
+            email: email
           }
         });
       });
     });
 
   } catch (error) {
+    console.error('Unexpected error in register:', error);
     res.status(500).json({
       success: false,
-      message: 'Server error'
+      message: 'Server error: ' + error.message
     });
   }
 };
-
 // Login function
 const login = async (req, res) => {
   try {

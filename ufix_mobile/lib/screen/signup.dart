@@ -46,23 +46,17 @@ class _SignupScreenState extends State<SignupScreen> {
       _isLoading = false;
     });
 
-    if (result['success']) {
-      // Success - navigate to login
-      final user = User.fromJson(result['user']);
+    if (!mounted) return;
 
-      print('Registration successful!');
-      print('User ID: ${user.id}');
-
+    if (result['success'] == true || result['statusCode'] == 201) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Registration successful! Please login.')),
+        const SnackBar(content: Text('Pendaftaran Berhasil! Silakan Login.')),
       );
-
-      Navigator.pushReplacementNamed(context, '/home'); // Go back to login
+      Navigator.pushReplacementNamed(context, '/login'); // ke halaman login
     } else {
-      // Error
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(result['message'])));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(result['message'] ?? 'Pendaftaran Gagal.')),
+      );
     }
   }
 
@@ -93,7 +87,7 @@ class _SignupScreenState extends State<SignupScreen> {
                     ),
                     minimumSize: Size(75, 75),
                     backgroundColor: Color(0xFFF7F7FA),
-                    padding: EdgeInsets.all(8),
+                    padding: const EdgeInsets.all(8),
                     foregroundColor: Color(0xFF4B92DB),
                     shadowColor: Color(0xD8183A64),
                   ),
@@ -119,7 +113,7 @@ class _SignupScreenState extends State<SignupScreen> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              'Welcome!',
+                              'Selamat Datang!',
                               style: TextStyle(
                                 color: Colors.black,
                                 fontSize: 38,
@@ -179,7 +173,7 @@ class _SignupScreenState extends State<SignupScreen> {
                                   contentPadding: EdgeInsets.symmetric(
                                     horizontal: 16,
                                   ),
-                                  hintText: 'Masukan Email',
+                                  hintText: 'Masukkan Email',
                                 ),
                               ),
                             ),
@@ -196,7 +190,7 @@ class _SignupScreenState extends State<SignupScreen> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              'Display Name',
+                              'Nama Tampilan',
                               style: TextStyle(
                                 color: Colors.black,
                                 fontSize: 16,
@@ -225,7 +219,7 @@ class _SignupScreenState extends State<SignupScreen> {
                                   contentPadding: EdgeInsets.symmetric(
                                     horizontal: 16,
                                   ),
-                                  hintText: 'Masukan Display Name',
+                                  hintText: 'Masukan Nama Tampilan',
                                 ),
                               ),
                             ),
@@ -242,7 +236,7 @@ class _SignupScreenState extends State<SignupScreen> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              'Password',
+                              'Kata Sandi',
                               style: TextStyle(
                                 color: Colors.black,
                                 fontSize: 16,
@@ -265,13 +259,14 @@ class _SignupScreenState extends State<SignupScreen> {
                                 ),
                               ),
                               child: TextField(
-                                controller: _passwordController, // Add this
+                                controller: _passwordController,
+                                obscureText: true,
                                 decoration: InputDecoration(
                                   border: InputBorder.none,
                                   contentPadding: EdgeInsets.symmetric(
                                     horizontal: 16,
                                   ),
-                                  hintText: 'Masukan Email',
+                                  hintText: 'Masukan Kata Sandi',
                                 ),
                               ),
                             ),
@@ -288,7 +283,7 @@ class _SignupScreenState extends State<SignupScreen> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              'Repeat Password',
+                              'Ulangi Kata Sandi',
                               style: TextStyle(
                                 color: Colors.black,
                                 fontSize: 16,
@@ -313,12 +308,13 @@ class _SignupScreenState extends State<SignupScreen> {
                               child: TextField(
                                 controller:
                                     _confirmPasswordController, // Add this
+                                obscureText: true,
                                 decoration: InputDecoration(
                                   border: InputBorder.none,
                                   contentPadding: EdgeInsets.symmetric(
                                     horizontal: 16,
                                   ),
-                                  hintText: 'Ulangi Password',
+                                  hintText: 'Masukkan Kata Sandi',
                                 ),
                               ),
                             ),

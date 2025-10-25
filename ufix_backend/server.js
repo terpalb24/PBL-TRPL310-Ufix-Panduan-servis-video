@@ -3,6 +3,7 @@ const cors = require('cors');
 require('dotenv').config();
 const db = require('./config/database');
 const authRoutes = require('./routes/authRoutes');
+const searchRoutes = require('./routes/searchRoutes')
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -18,6 +19,7 @@ app.use(express.urlencoded({ extended: true }));
 
 // Routes
 app.use('/api/auth', authRoutes);
+app.use('/api/search', searchRoutes)
 
 // Test route
 app.get('/', (req, res) => {

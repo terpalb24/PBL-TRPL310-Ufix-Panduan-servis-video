@@ -1,4 +1,4 @@
-const db = require('../config/database');
+const { dbPromise } = require('../config/database'); 
 
 const searchVideo = async (req, res) => {
     try {
@@ -13,16 +13,16 @@ const searchVideo = async (req, res) => {
 
         const splitTags = tag.split(' ').filter(tag => tag.trim() !== '');
 
-        const placeholders = splitTags.map(() => '?').join(', ');
+        const placeholderTag = splitTags.map(() => '?').join(', ');
 
-        const selectQuery = `SELECT DISTINCT v.* FROM video v JOIN tagVideo tV ON tV.idVideo = v.idVideo JOIN tag t ON t.idTag = tV.idTag WHERE t.tag IN (${placeholders})`;
+        const selectQuery = `SELECT DISTINCT v.* FROM video v JOIN tagVideo tV ON tV.idVideo = v.idVideo JOIN tag t ON t.idTag = tV.idTag WHERE t.tag IN (${placeholderTag})`;
         
-        const [videos] = await db.execute(selectQuery, splitTags);
+        const [rows] = await dbPromise.execute(selectQuery, splitTags);
 
         res.json({ 
             success: true,
-            count: videos.length,
-            videos: videos 
+            count: rows.length,
+            videos: rows 
         });
 
     } catch (error) {

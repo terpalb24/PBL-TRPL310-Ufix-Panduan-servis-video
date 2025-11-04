@@ -1,11 +1,11 @@
 const { dbPromise } = require("../config/database");
 
-const showBookmarks = async (req, res) => {
+const getBookmark = async (req, res) => {
   try {
 
     const idUser = parseInt(req.query.idUser);
 
-    
+
     if (!idUser || isNaN(idUser)) {
       return res.status(400).json({
         success: false,
@@ -41,4 +41,4 @@ const showBookmarks = async (req, res) => {
   }
 };
 
-module.exports = { showBookmarks };
+module.exports = { getBookmark };

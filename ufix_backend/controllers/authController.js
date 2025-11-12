@@ -31,7 +31,7 @@ const signUp = async (req, res) => {
     const [result] = await dbPromise.query(insertQuery, [
       email,
       displayName,
-      hashedPassword,
+      password,
     ]);
 
     res.status(201).json({

@@ -73,7 +73,7 @@ const login = async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    // Validate input
+    // Validasi input
     if (!email || !password) {
       return res.status(400).json({
         success: false,
@@ -81,10 +81,11 @@ const login = async (req, res) => {
       });
     }
 
-    // Find user by email
-    const findUserQuery = 'SELECT * FROM users WHERE email = ?';
+    // Cari user berdasarkan email
+    const findUserQuery = 'SELECT * FROM pengguna WHERE email = ?';
     db.query(findUserQuery, [email], async (err, results) => {
       if (err) {
+        console.error('Database error in findUserQuery:', err);
         return res.status(500).json({
           success: false,
           message: 'Database error'
@@ -100,8 +101,8 @@ const login = async (req, res) => {
 
       const user = results[0];
 
-      // Check password
-      const isPasswordValid = await bcrypt.compare(password, user.password);
+      // Cek password
+      const isPasswordValid = await bcrypt.compare(password, user.PASSWORD);
       if (!isPasswordValid) {
         return res.status(401).json({
           success: false,
@@ -109,29 +110,34 @@ const login = async (req, res) => {
         });
       }
 
-      // Generate JWT token
+      // Pastikan JWT_SECRET ada
+      const secret = process.env.JWT_SECRET || 'default_secret';
+
+      // Generate token JWT
       const token = jwt.sign(
         { userId: user.id, email: user.email },
-        process.env.JWT_SECRET,
+        secret,
         { expiresIn: '24h' }
       );
 
-      res.json({
+      // Kirim response sukses
+      res.status(200).json({
         success: true,
         message: 'Login successful',
         token,
         user: {
           id: user.id,
-          username: user.username,
+          displayName: user.displayName, // sesuai kolom database
           email: user.email
         }
       });
     });
 
   } catch (error) {
+    console.error('Unexpected error in login:', error);
     res.status(500).json({
       success: false,
-      message: 'Server error'
+      message: 'Server error: ' + error.message
     });
   }
 };
@@ -140,12 +146,12 @@ const login = async (req, res) => {
 const getProfile = (req, res) => {
   const userId = req.userId;
 
-  const query = 'SELECT id, username, email, created_at FROM users WHERE id = ?';
+  const query = 'SELECT id, displayName, email, created_at FROM pengguna WHERE id = ?';
   db.query(query, [userId], (err, results) => {
     if (err || results.length === 0) {
       return res.status(404).json({
         success: false,
-        message: 'User not found'
+        message: 'Pengguna Tidak Terdaftar.'
       });
     }
 

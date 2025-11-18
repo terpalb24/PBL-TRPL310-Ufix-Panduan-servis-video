@@ -7,6 +7,31 @@ class Settings extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        backgroundColor: Color(0xFF3A567A),
+        foregroundColor: Color(0xFFF7F7FA),
+        elevation: 8,
+
+        leading: Container(
+          margin: EdgeInsets.all(4),
+          child: IconButton(
+            onPressed: () {
+              Navigator.pushNamed(context, '/home');
+            },
+            icon: Icon(Icons.arrow_back_rounded),
+          ),
+        ),
+
+        title: Text(
+          'Pengaturan',
+          style: TextStyle(
+            color: Color(0xFFF7F7FA),
+            fontFamily: 'Kodchasan',
+            fontSize: 24,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+      ),
       body: Stack(
         children: [
           // Background
@@ -15,43 +40,6 @@ class Settings extends StatelessWidget {
             height: MediaQuery.of(context).size.height,
             color: const Color(0xFFFFF7F7),
           ),
-          
-          // Header
-          Container(
-            width: MediaQuery.of(context).size.width,
-            height: 70,
-            padding: const EdgeInsets.symmetric(horizontal: 17, vertical: 19),
-            decoration: BoxDecoration(color: const Color(0xFF3A567A)),
-            child: Row(
-              children: [
-                // Back button
-                GestureDetector(
-                  onTap: () {
-                    Navigator.pop(context);
-                  },
-                  child: Container(
-                    transform: Matrix4.identity()..rotateZ(3.14),
-                    child: Icon(
-                      Icons.arrow_forward_ios,
-                      color: const Color(0xFFF7F7FA),
-                      size: 20,
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 29),
-                Text(
-                  'Settings',
-                  style: TextStyle(
-                    color: const Color(0xFFF7F7FA),
-                    fontSize: 24,
-                    fontFamily: 'Kodchasan',
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          
           // Settings content
           Positioned(
             top: 70,
@@ -101,107 +89,27 @@ class Settings extends StatelessWidget {
               ),
             ),
           ),
-          
-          // Bottom navigation
-          Positioned(
-            left: 0,
-            bottom: 0,
-            child: Container(
-              width: MediaQuery.of(context).size.width,
-              height: 75,
-              color: const Color(0xFF3A567A),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                children: [
-                  // Home button
-                  GestureDetector(
-                    onTap: () {
-                      Navigator.pushNamed(context, '/home');
-                    },
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(Icons.home, color: const Color(0xFFF7F7FA), size: 24),
-                        const SizedBox(height: 4),
-                        Text(
-                          'Home',
-                          style: TextStyle(
-                            color: const Color(0xFFF7F7FA),
-                            fontSize: 11,
-                            fontFamily: 'Kodchasan',
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  
-                  // Search button
-                  GestureDetector(
-                    onTap: () {
-                      Navigator.pushNamed(context, '/search');
-                    },
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(Icons.search, color: const Color(0xFFF7F7FA), size: 24),
-                        const SizedBox(height: 4),
-                        Text(
-                          'Search',
-                          style: TextStyle(
-                            color: const Color(0xFFF7F7FA),
-                            fontSize: 11,
-                            fontFamily: 'Kodchasan',
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  
-                  // Bookmark button
-                  GestureDetector(
-                    onTap: () {
-                      Navigator.pushNamed(context, '/bookmark');
-                    },
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(Icons.bookmark, color: const Color(0xFFF7F7FA), size: 24),
-                        const SizedBox(height: 4),
-                        Text(
-                          'Bookmark',
-                          style: TextStyle(
-                            color: const Color(0xFFF7F7FA),
-                            fontSize: 11,
-                            fontFamily: 'Kodchasan',
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  
-                  // Settings button (active)
-                  Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(Icons.settings, color: const Color(0xFFFF7F00), size: 24),
-                      const SizedBox(height: 4),
-                      Text(
-                        'Settings',
-                        style: TextStyle(
-                          color: const Color(0xFFFF7F00),
-                          fontSize: 11,
-                          fontFamily: 'Kodchasan',
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
+        ],
+      ),
+      bottomNavigationBar: BottomNavigationBar(
+        backgroundColor: Color(0xFF3A567A),
+        selectedItemColor: Color(0XFFFF7F00),
+        unselectedItemColor: Color(0XFFF7F7FA),
+        items: [
+          BottomNavigationBarItem(
+            icon: Icon(Icons.home),
+            activeIcon: Icon(Icons.home_filled),
+            label: 'Home',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.search),
+            activeIcon: Icon(Icons.search),
+            label: 'search',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.bookmark),
+            activeIcon: Icon(Icons.bookmark),
+            label: 'bookmark',
           ),
         ],
       ),

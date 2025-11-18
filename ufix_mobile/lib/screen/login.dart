@@ -69,7 +69,7 @@ class _ScreenLoginState extends State<ScreenLogin> {
                   height: 183,
                   decoration: const BoxDecoration(
                     image: DecorationImage(
-                      image: NetworkImage("https://placehold.co/350x183"),
+                      image: AssetImage('Asset/logo.png'),
                       fit: BoxFit.cover,
                     ),
                   ),

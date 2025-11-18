@@ -127,17 +127,17 @@ class Bookmark extends StatelessWidget {
               child: SingleChildScrollView(
                 child: Column(
                   children: [
-                    _buildBookmarkedVideoItem(),
+                    _buildBookmarkedVideoItem(context),
                     const SizedBox(height: 10),
-                    _buildBookmarkedVideoItem(),
+                    _buildBookmarkedVideoItem(context),
                     const SizedBox(height: 10),
-                    _buildBookmarkedVideoItem(),
+                    _buildBookmarkedVideoItem(context),
                     const SizedBox(height: 10),
-                    _buildBookmarkedVideoItem(),
+                    _buildBookmarkedVideoItem(context),
                     const SizedBox(height: 10),
-                    _buildBookmarkedVideoItem(),
+                    _buildBookmarkedVideoItem(context),
                     const SizedBox(height: 10),
-                    _buildBookmarkedVideoItem(),
+                    _buildBookmarkedVideoItem(context),
                     
                     // Load more button
                     const SizedBox(height: 20),
@@ -298,8 +298,10 @@ class Bookmark extends StatelessWidget {
   }
   
   // Helper method for bookmarked video items
-  Widget _buildBookmarkedVideoItem() {
-    return Container(
+  Widget _buildBookmarkedVideoItem(BuildContext context) {
+    return GestureDetector(
+      onTap: () {Navigator.pushNamed(context, '/player');},
+      child: Container(
       width: double.infinity,
       height: 100,
       padding: const EdgeInsets.all(12),
@@ -310,10 +312,7 @@ class Bookmark extends StatelessWidget {
           colors: [const Color(0xFFEFF7FC), const Color(0xFFF7F7FA)],
         ),
         shape: RoundedRectangleBorder(
-          side: BorderSide(
-            width: 1,
-            color: const Color(0x333A567A),
-          ),
+          side: BorderSide(width: 1, color: const Color(0x333A567A)),
           borderRadius: BorderRadius.circular(20),
         ),
       ),
@@ -325,7 +324,7 @@ class Bookmark extends StatelessWidget {
             height: 80,
             decoration: ShapeDecoration(
               image: DecorationImage(
-                image: NetworkImage("https://placehold.co/140x80"),
+                image: AssetImage('Asset/Thumbnail-Fake.png'),
                 fit: BoxFit.cover,
               ),
               shape: RoundedRectangleBorder(
@@ -344,7 +343,7 @@ class Bookmark extends StatelessWidget {
                   'Video_Title',
                   style: TextStyle(
                     color: Colors.black,
-                    fontSize: 20,
+                    fontSize: 18,
                     fontFamily: 'Jost',
                     fontWeight: FontWeight.w400,
                   ),
@@ -353,7 +352,7 @@ class Bookmark extends StatelessWidget {
                   'Uploader',
                   style: TextStyle(
                     color: Colors.black,
-                    fontSize: 14,
+                    fontSize: 12,
                     fontFamily: 'Jost',
                     fontWeight: FontWeight.w300,
                   ),
@@ -362,7 +361,7 @@ class Bookmark extends StatelessWidget {
                   'Date/Month/Year',
                   style: TextStyle(
                     color: Colors.black,
-                    fontSize: 10,
+                    fontSize: 8,
                     fontFamily: 'Jost',
                     fontWeight: FontWeight.w300,
                   ),
@@ -372,6 +371,7 @@ class Bookmark extends StatelessWidget {
           ),
         ],
       ),
+    ),
     );
   }
 }

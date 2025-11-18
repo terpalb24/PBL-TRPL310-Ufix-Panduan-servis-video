@@ -215,9 +215,9 @@ class Homepage extends StatelessWidget {
         ],
       ),
       bottomNavigationBar: BottomNavigationBar(
-        backgroundColor: Color(0xFF3A567A),
+        backgroundColor: Color(0xFFF7F7FA),
         selectedItemColor: Color(0XFFFF7F00),
-        unselectedItemColor: Color(0XFFF7F7FA),
+        unselectedItemColor: Color(0xFF3A567A),
         items: [
           BottomNavigationBarItem(
             icon: Icon(Icons.home),

@@ -10,7 +10,7 @@ class ApiService {
       return 'http://10.0.2.2:3000/api/auth';
     } else {
       // jika jalan di web atau HP fisik
-      return 'http://192.168.56.1:3000/api/auth'; // ganti IP sesuai IP yang dipakai
+      return 'http://localhost:3000/api/auth'; // ganti IP sesuai IP yang dipakai
     }
   }
 

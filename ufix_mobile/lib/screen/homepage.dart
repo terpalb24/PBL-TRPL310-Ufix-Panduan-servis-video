@@ -101,12 +101,13 @@ class Homepage extends StatelessWidget {
                 ),
               ),
 
-              // Tab buttons section
+              // Tab section
               SliverToBoxAdapter(
                 child: SizedBox(
                   width: double.infinity,
                   child: Row(
                     children: [
+                      // Suggested tab
                       Expanded(
                         child: Container(
                           height: 38,
@@ -130,6 +131,7 @@ class Homepage extends StatelessWidget {
                           ),
                         ),
                       ),
+                      // Newest tab
                       Expanded(
                         child: Opacity(
                           opacity: 0.50,
@@ -162,15 +164,30 @@ class Homepage extends StatelessWidget {
               ),
 
               // Video list section
-              SliverList(
-                delegate: SliverChildBuilderDelegate(
-                  (context, index) {
-                    if (index == 6) {
-                      // Load more button after 6 videos
-                      return Container(
-                        width: 60,
+              SliverToBoxAdapter(
+                child: Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    children: [
+                      _buildVideoItem(context),
+                      const SizedBox(height: 10),
+                      _buildVideoItem(context),
+                      const SizedBox(height: 10),
+                      _buildVideoItem(context),
+                      const SizedBox(height: 10),
+                      _buildVideoItem(context),
+                      const SizedBox(height: 10),
+                      _buildVideoItem(context),
+                      const SizedBox(height: 10),
+                      _buildVideoItem(context),
+                      const SizedBox(height: 10),
+
+                      // Load more button
+                      const SizedBox(height: 20),
+                      Container(
+                        width: 100,
                         height: 30,
-                        margin: EdgeInsets.all(20),
                         decoration: ShapeDecoration(
                           gradient: LinearGradient(
                             begin: Alignment(0.50, 1.00),
@@ -195,44 +212,12 @@ class Homepage extends StatelessWidget {
                             ),
                           ),
                         ),
-                      );
-                    }
-                    return Padding(
-                      padding: EdgeInsets.fromLTRB(
-                        16,
-                        10,
-                        16,
-                        index == 5 ? 10 : 0,
                       ),
-                      child: _buildVideoItem(context),
-                    );
-                  },
-                  childCount: 7, // 6 videos + 1 load more button
+                    ],
+                  ),
                 ),
               ),
             ],
-          ),
-        ],
-      ),
-      bottomNavigationBar: BottomNavigationBar(
-        backgroundColor: Color(0xFFF7F7FA),
-        selectedItemColor: Color(0XFFFF7F00),
-        unselectedItemColor: Color(0xFF3A567A),
-        items: [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home),
-            activeIcon: Icon(Icons.home_filled),
-            label: 'Home',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.search),
-            activeIcon: Icon(Icons.search),
-            label: 'search',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.bookmark),
-            activeIcon: Icon(Icons.bookmark),
-            label: 'bookmark',
           ),
         ],
       ),
@@ -242,78 +227,80 @@ class Homepage extends StatelessWidget {
   // Helper method for video items
   Widget _buildVideoItem(BuildContext context) {
     return GestureDetector(
-      onTap: () {Navigator.pushNamed(context, '/player');},
+      onTap: () {
+        Navigator.pushNamed(context, '/player');
+      },
       child: Container(
-      width: double.infinity,
-      height: 100,
-      padding: const EdgeInsets.all(12),
-      decoration: ShapeDecoration(
-        gradient: LinearGradient(
-          begin: Alignment(0.98, -0.00),
-          end: Alignment(0.02, 1.00),
-          colors: [const Color(0xFFEFF7FC), const Color(0xFFF7F7FA)],
+        width: double.infinity,
+        height: 100,
+        padding: const EdgeInsets.all(12),
+        decoration: ShapeDecoration(
+          gradient: LinearGradient(
+            begin: Alignment(0.98, -0.00),
+            end: Alignment(0.02, 1.00),
+            colors: [const Color(0xFFEFF7FC), const Color(0xFFF7F7FA)],
+          ),
+          shape: RoundedRectangleBorder(
+            side: BorderSide(width: 1, color: const Color(0x333A567A)),
+            borderRadius: BorderRadius.circular(20),
+          ),
         ),
-        shape: RoundedRectangleBorder(
-          side: BorderSide(width: 1, color: const Color(0x333A567A)),
-          borderRadius: BorderRadius.circular(20),
-        ),
-      ),
-      child: Row(
-        children: [
-          // Thumbnail
-          Container(
-            width: 140,
-            height: 80,
-            decoration: ShapeDecoration(
-              image: DecorationImage(
-                image: AssetImage('Asset/Thumbnail-Fake.png'),
-                fit: BoxFit.cover,
-              ),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(20),
+        child: Row(
+          children: [
+            // Thumbnail
+            Container(
+              width: 140,
+              height: 80,
+              decoration: ShapeDecoration(
+                image: DecorationImage(
+                  image: AssetImage('Asset/Thumbnail-Fake.png'),
+                  fit: BoxFit.cover,
+                ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(20),
+                ),
               ),
             ),
-          ),
-          const SizedBox(width: 11),
-          // Video info
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                Text(
-                  'Video_Title',
-                  style: TextStyle(
-                    color: Colors.black,
-                    fontSize: 18,
-                    fontFamily: 'Jost',
-                    fontWeight: FontWeight.w400,
+            const SizedBox(width: 11),
+            // Video info
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  Text(
+                    'Video_Title',
+                    style: TextStyle(
+                      color: Colors.black,
+                      fontSize: 18,
+                      fontFamily: 'Jost',
+                      fontWeight: FontWeight.w400,
+                    ),
                   ),
-                ),
-                Text(
-                  'Uploader',
-                  style: TextStyle(
-                    color: Colors.black,
-                    fontSize: 12,
-                    fontFamily: 'Jost',
-                    fontWeight: FontWeight.w300,
+                  Text(
+                    'Uploader',
+                    style: TextStyle(
+                      color: Colors.black,
+                      fontSize: 12,
+                      fontFamily: 'Jost',
+                      fontWeight: FontWeight.w300,
+                    ),
                   ),
-                ),
-                Text(
-                  'Date/Month/Year',
-                  style: TextStyle(
-                    color: Colors.black,
-                    fontSize: 8,
-                    fontFamily: 'Jost',
-                    fontWeight: FontWeight.w300,
+                  Text(
+                    'Date/Month/Year',
+                    style: TextStyle(
+                      color: Colors.black,
+                      fontSize: 8,
+                      fontFamily: 'Jost',
+                      fontWeight: FontWeight.w300,
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
-    ),
     );
   }
 }

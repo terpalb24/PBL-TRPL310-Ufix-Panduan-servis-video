@@ -36,7 +36,7 @@ class WelcomeUnlogged extends StatelessWidget {
                     height: 181,
                     decoration: const BoxDecoration(
                       image: DecorationImage(
-                        image: NetworkImage("https://placehold.co/346x181"),
+                        image: AssetImage('Asset/logo.png'),
                         fit: BoxFit.cover,
                       ),
                     ),
@@ -75,62 +75,54 @@ class WelcomeUnlogged extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   // Tombol Sign In
-                  GestureDetector(
-                    onTap: () {
-                      Navigator.pushNamed(context, '/signup');
-                    },
-                    child: Container(
-                      width: 264,
-                      height: 39,
-                      decoration: ShapeDecoration(
-                        color: const Color(0xFF4B92DB),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                      ),
-                      child: const Center(
-                        child: Text(
-                          'Sign Up',
-                          style: TextStyle(
-                            color: Color(0xFFF7F7F7),
-                            fontSize: 20,
-                            fontFamily: 'Kodchasan',
-                            fontWeight: FontWeight.w400,
+                  Container(
+                        width: 264,
+                        height: 39,
+                        decoration: ShapeDecoration(
+                          color: const Color(0xFF4B92DB),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(20),
                           ),
                         ),
+                        child: TextButton(
+                          onPressed: () {Navigator.pushNamed(context,'/signup');},
+                          child: Text(
+                                  'Buat Akun',
+                                  style: TextStyle(
+                                    color: const Color(0xFFF7F7FA),
+                                    fontSize: 20,
+                                    fontFamily: 'Kodchasan',
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                        ),
                       ),
-                    ),
-                  ),
 
                   const SizedBox(height: 7),
 
                   // Tombol Login
-                  GestureDetector(
-                    onTap: () {
-                      Navigator.pushNamed(context, '/login');
-                    },
-                    child: Container(
-                      width: 264,
-                      height: 39,
-                      decoration: ShapeDecoration(
-                        color: const Color(0xFF4B92DB),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                      ),
-                      child: const Center(
-                        child: Text(
-                          'Login',
-                          style: TextStyle(
-                            color: Color(0xFFF7F7F7),
-                            fontSize: 20,
-                            fontFamily: 'Kodchasan',
-                            fontWeight: FontWeight.w400,
+                  Container(
+                        width: 264,
+                        height: 39,
+                        decoration: ShapeDecoration(
+                          color: const Color(0xFF4B92DB),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(20),
                           ),
                         ),
+                        child: TextButton(
+                          onPressed: () {Navigator.pushNamed(context,'/login');},
+                          child: Text(
+                                  'Login',
+                                  style: TextStyle(
+                                    color: const Color(0xFFF7F7FA),
+                                    fontSize: 20,
+                                    fontFamily: 'Kodchasan',
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                        ),
                       ),
-                    ),
-                  ),
                 ],
               ),
             ),

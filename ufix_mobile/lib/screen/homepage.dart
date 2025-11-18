@@ -17,95 +17,122 @@ class Homepage extends StatelessWidget {
           margin: EdgeInsets.all(8),
           child: Image.asset(
             'Asset/logo.png',
-            width: 105,
-            height: 55,
+            width: 210,
+            height: 110,
           ), // Logo, align kiri
         ),
         title: SizedBox.shrink(),
         centerTitle: true,
 
         actions: [
-          IconButton(onPressed: () {Navigator.pushNamed(context, '/history');}, icon: Icon(Icons.history)), //Tombol History
-          IconButton(onPressed: () {Navigator.pushNamed(context, '/settings');}, icon: Icon(Icons.settings)), //Tombol Settings
+          IconButton(
+            onPressed: () {
+              Navigator.pushNamed(context, '/history');
+            },
+            icon: Icon(Icons.history),
+          ), //Tombol History
+          IconButton(
+            onPressed: () {
+              Navigator.pushNamed(context, '/settings');
+            },
+            icon: Icon(Icons.settings),
+          ), //Tombol Settings
         ],
       ),
       body: Stack(
         children: [
-          // Background
+          // Background (covers entire screen, fixed)
           Container(
             width: MediaQuery.of(context).size.width,
             height: MediaQuery.of(context).size.height,
             decoration: BoxDecoration(color: const Color(0xFFF7F7FA)),
           ),
 
-          // Main content
-          Positioned(
-            left: 0,
-            top: 90,
-            child: SizedBox(
-              width: MediaQuery.of(context).size.width,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                mainAxisAlignment: MainAxisAlignment.start,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Welcome banner
-                  Container(
-                    width: double.infinity,
-                    height: 350,
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 9,
-                      vertical: 6,
-                    ),
-                    decoration: BoxDecoration(color: const Color(0xFF3A567A)),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      mainAxisAlignment: MainAxisAlignment.start,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Welcome, (display_name)!',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 24,
-                            fontFamily: 'Kodchasan',
-                            fontWeight: FontWeight.w400,
+          // Scrollable content
+          CustomScrollView(
+            slivers: [
+              // Welcome banner section
+              SliverToBoxAdapter(
+                child: Container(
+                  width: double.infinity,
+                  height: 400,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 9,
+                    vertical: 6,
+                  ),
+                  decoration: BoxDecoration(color: const Color(0xFF3A567A)),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Welcome, (display_name)!',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 24,
+                          fontFamily: 'Kodchasan',
+                          fontWeight: FontWeight.w400,
+                        ),
+                      ),
+                      const SizedBox(height: 78),
+                      Container(
+                        width: 286,
+                        height: 164,
+                        decoration: BoxDecoration(
+                          image: DecorationImage(
+                            image: AssetImage('Asset/Thumbnail-Fake.png'),
+                            fit: BoxFit.cover,
                           ),
                         ),
-                        const SizedBox(height: 78),
-                        Container(
-                          width: 286,
-                          height: 164,
+                      ),
+                      const SizedBox(height: 78),
+                      Text(
+                        'Resume watching?',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 20,
+                          fontFamily: 'Kodchasan',
+                          fontWeight: FontWeight.w400,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+
+              // Tab buttons section
+              SliverToBoxAdapter(
+                child: SizedBox(
+                  width: double.infinity,
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Container(
+                          height: 38,
                           decoration: BoxDecoration(
-                            image: DecorationImage(
-                              image: NetworkImage(
-                                "https://placehold.co/286x164",
+                            color: const Color(0xFFF7F7FA),
+                            border: Border.all(
+                              width: 1,
+                              color: const Color(0xFF3A567A),
+                            ),
+                          ),
+                          child: Center(
+                            child: Text(
+                              'Suggested',
+                              style: TextStyle(
+                                color: Colors.black,
+                                fontSize: 13,
+                                fontFamily: 'Jost',
+                                fontWeight: FontWeight.w600,
                               ),
-                              fit: BoxFit.cover,
                             ),
                           ),
                         ),
-                        const SizedBox(height: 78),
-                        Text(
-                          'Resume watching?',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 20,
-                            fontFamily: 'Kodchasan',
-                            fontWeight: FontWeight.w400,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-
-                  // Tab buttons
-                  SizedBox(
-                    width: double.infinity,
-                    child: Row(
-                      children: [
-                        // Suggested tab
-                        Expanded(
+                      ),
+                      Expanded(
+                        child: Opacity(
+                          opacity: 0.50,
                           child: Container(
                             height: 38,
                             decoration: BoxDecoration(
@@ -117,7 +144,7 @@ class Homepage extends StatelessWidget {
                             ),
                             child: Center(
                               child: Text(
-                                'Suggested',
+                                'Newest',
                                 style: TextStyle(
                                   color: Colors.black,
                                   fontSize: 13,
@@ -128,91 +155,62 @@ class Homepage extends StatelessWidget {
                             ),
                           ),
                         ),
-                        // Newest tab
-                        Expanded(
-                          child: Opacity(
-                            opacity: 0.50,
-                            child: Container(
-                              height: 38,
-                              decoration: BoxDecoration(
-                                color: const Color(0xFFF7F7FA),
-                                border: Border.all(
-                                  width: 1,
-                                  color: const Color(0xFF3A567A),
-                                ),
-                              ),
-                              child: Center(
-                                child: Text(
-                                  'Newest',
-                                  style: TextStyle(
-                                    color: Colors.black,
-                                    fontSize: 13,
-                                    fontFamily: 'Jost',
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
-
-                  // Video list
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.all(16),
-                    child: Column(
-                      children: [
-                        _buildVideoItem(),
-                        const SizedBox(height: 10),
-                        _buildVideoItem(),
-                        const SizedBox(height: 10),
-                        _buildVideoItem(),
-                        const SizedBox(height: 10),
-                        _buildVideoItem(),
-                        const SizedBox(height: 10),
-                        _buildVideoItem(),
-                        const SizedBox(height: 10),
-                        _buildVideoItem(),
-
-                        // Load more button
-                        const SizedBox(height: 20),
-                        Container(
-                          width: 100,
-                          height: 30,
-                          decoration: ShapeDecoration(
-                            gradient: LinearGradient(
-                              begin: Alignment(0.50, 1.00),
-                              end: Alignment(0.50, 0.00),
-                              colors: [
-                                const Color(0xFFADE7F7),
-                                const Color(0xFFF7F7FA),
-                              ],
-                            ),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(30),
-                            ),
-                          ),
-                          child: Center(
-                            child: Text(
-                              'Lebih Banyak',
-                              style: TextStyle(
-                                color: Colors.black,
-                                fontSize: 13,
-                                fontFamily: 'Jost',
-                                fontWeight: FontWeight.w400,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
+                ),
               ),
-            ),
+
+              // Video list section
+              SliverList(
+                delegate: SliverChildBuilderDelegate(
+                  (context, index) {
+                    if (index == 6) {
+                      // Load more button after 6 videos
+                      return Container(
+                        width: 60,
+                        height: 30,
+                        margin: EdgeInsets.all(20),
+                        decoration: ShapeDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment(0.50, 1.00),
+                            end: Alignment(0.50, 0.00),
+                            colors: [
+                              const Color(0xFFADE7F7),
+                              const Color(0xFFF7F7FA),
+                            ],
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(30),
+                          ),
+                        ),
+                        child: Center(
+                          child: Text(
+                            'Lebih Banyak',
+                            style: TextStyle(
+                              color: Colors.black,
+                              fontSize: 13,
+                              fontFamily: 'Jost',
+                              fontWeight: FontWeight.w400,
+                            ),
+                          ),
+                        ),
+                      );
+                    }
+                    return Padding(
+                      padding: EdgeInsets.fromLTRB(
+                        16,
+                        10,
+                        16,
+                        index == 5 ? 10 : 0,
+                      ),
+                      child: _buildVideoItem(context),
+                    );
+                  },
+                  childCount: 7, // 6 videos + 1 load more button
+                ),
+              ),
+            ],
           ),
         ],
       ),
@@ -221,17 +219,31 @@ class Homepage extends StatelessWidget {
         selectedItemColor: Color(0XFFFF7F00),
         unselectedItemColor: Color(0XFFF7F7FA),
         items: [
-          BottomNavigationBarItem(icon: Icon(Icons.home),activeIcon: Icon(Icons.home_filled), label: 'Home'),
-          BottomNavigationBarItem(icon: Icon(Icons.search),activeIcon: Icon(Icons.search), label: 'search'),
-          BottomNavigationBarItem(icon: Icon(Icons.bookmark),activeIcon: Icon(Icons.bookmark), label: 'bookmark')
+          BottomNavigationBarItem(
+            icon: Icon(Icons.home),
+            activeIcon: Icon(Icons.home_filled),
+            label: 'Home',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.search),
+            activeIcon: Icon(Icons.search),
+            label: 'search',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.bookmark),
+            activeIcon: Icon(Icons.bookmark),
+            label: 'bookmark',
+          ),
         ],
       ),
     );
   }
 
   // Helper method for video items
-  Widget _buildVideoItem() {
-    return Container(
+  Widget _buildVideoItem(BuildContext context) {
+    return GestureDetector(
+      onTap: () {Navigator.pushNamed(context, '/player');},
+      child: Container(
       width: double.infinity,
       height: 100,
       padding: const EdgeInsets.all(12),
@@ -254,7 +266,7 @@ class Homepage extends StatelessWidget {
             height: 80,
             decoration: ShapeDecoration(
               image: DecorationImage(
-                image: NetworkImage("https://placehold.co/140x80"),
+                image: AssetImage('Asset/Thumbnail-Fake.png'),
                 fit: BoxFit.cover,
               ),
               shape: RoundedRectangleBorder(
@@ -273,7 +285,7 @@ class Homepage extends StatelessWidget {
                   'Video_Title',
                   style: TextStyle(
                     color: Colors.black,
-                    fontSize: 20,
+                    fontSize: 18,
                     fontFamily: 'Jost',
                     fontWeight: FontWeight.w400,
                   ),
@@ -282,7 +294,7 @@ class Homepage extends StatelessWidget {
                   'Uploader',
                   style: TextStyle(
                     color: Colors.black,
-                    fontSize: 14,
+                    fontSize: 12,
                     fontFamily: 'Jost',
                     fontWeight: FontWeight.w300,
                   ),
@@ -291,7 +303,7 @@ class Homepage extends StatelessWidget {
                   'Date/Month/Year',
                   style: TextStyle(
                     color: Colors.black,
-                    fontSize: 10,
+                    fontSize: 8,
                     fontFamily: 'Jost',
                     fontWeight: FontWeight.w300,
                   ),
@@ -301,6 +313,7 @@ class Homepage extends StatelessWidget {
           ),
         ],
       ),
+    ),
     );
   }
 }

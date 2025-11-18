@@ -99,13 +99,38 @@ class Homepage extends StatelessWidget {
                     ),
                   ),
 
-                  // Tab buttons
-                  SizedBox(
-                    width: double.infinity,
-                    child: Row(
-                      children: [
-                        // Suggested tab
-                        Expanded(
+              // Tab buttons section
+              SliverToBoxAdapter(
+                child: SizedBox(
+                  width: double.infinity,
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Container(
+                          height: 38,
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFF7F7FA),
+                            border: Border.all(
+                              width: 1,
+                              color: const Color(0xFF3A567A),
+                            ),
+                          ),
+                          child: Center(
+                            child: Text(
+                              'Suggested',
+                              style: TextStyle(
+                                color: Colors.black,
+                                fontSize: 13,
+                                fontFamily: 'Jost',
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                      Expanded(
+                        child: Opacity(
+                          opacity: 0.50,
                           child: Container(
                             height: 38,
                             decoration: BoxDecoration(
@@ -117,7 +142,7 @@ class Homepage extends StatelessWidget {
                             ),
                             child: Center(
                               child: Text(
-                                'Suggested',
+                                'Newest',
                                 style: TextStyle(
                                   color: Colors.black,
                                   fontSize: 13,
@@ -128,91 +153,62 @@ class Homepage extends StatelessWidget {
                             ),
                           ),
                         ),
-                        // Newest tab
-                        Expanded(
-                          child: Opacity(
-                            opacity: 0.50,
-                            child: Container(
-                              height: 38,
-                              decoration: BoxDecoration(
-                                color: const Color(0xFFF7F7FA),
-                                border: Border.all(
-                                  width: 1,
-                                  color: const Color(0xFF3A567A),
-                                ),
-                              ),
-                              child: Center(
-                                child: Text(
-                                  'Newest',
-                                  style: TextStyle(
-                                    color: Colors.black,
-                                    fontSize: 13,
-                                    fontFamily: 'Jost',
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
-
-                  // Video list
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.all(16),
-                    child: Column(
-                      children: [
-                        _buildVideoItem(),
-                        const SizedBox(height: 10),
-                        _buildVideoItem(),
-                        const SizedBox(height: 10),
-                        _buildVideoItem(),
-                        const SizedBox(height: 10),
-                        _buildVideoItem(),
-                        const SizedBox(height: 10),
-                        _buildVideoItem(),
-                        const SizedBox(height: 10),
-                        _buildVideoItem(),
-
-                        // Load more button
-                        const SizedBox(height: 20),
-                        Container(
-                          width: 100,
-                          height: 30,
-                          decoration: ShapeDecoration(
-                            gradient: LinearGradient(
-                              begin: Alignment(0.50, 1.00),
-                              end: Alignment(0.50, 0.00),
-                              colors: [
-                                const Color(0xFFADE7F7),
-                                const Color(0xFFF7F7FA),
-                              ],
-                            ),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(30),
-                            ),
-                          ),
-                          child: Center(
-                            child: Text(
-                              'Lebih Banyak',
-                              style: TextStyle(
-                                color: Colors.black,
-                                fontSize: 13,
-                                fontFamily: 'Jost',
-                                fontWeight: FontWeight.w400,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
+                ),
               ),
-            ),
+
+              // Video list section
+              SliverList(
+                delegate: SliverChildBuilderDelegate(
+                  (context, index) {
+                    if (index == 6) {
+                      // Load more button after 6 videos
+                      return Container(
+                        width: 60,
+                        height: 30,
+                        margin: EdgeInsets.all(20),
+                        decoration: ShapeDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment(0.50, 1.00),
+                            end: Alignment(0.50, 0.00),
+                            colors: [
+                              const Color(0xFFADE7F7),
+                              const Color(0xFFF7F7FA),
+                            ],
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(30),
+                          ),
+                        ),
+                        child: Center(
+                          child: Text(
+                            'Lebih Banyak',
+                            style: TextStyle(
+                              color: Colors.black,
+                              fontSize: 13,
+                              fontFamily: 'Jost',
+                              fontWeight: FontWeight.w400,
+                            ),
+                          ),
+                        ),
+                      );
+                    }
+                    return Padding(
+                      padding: EdgeInsets.fromLTRB(
+                        16,
+                        10,
+                        16,
+                        index == 5 ? 10 : 0,
+                      ),
+                      child: _buildVideoItem(context),
+                    );
+                  },
+                  childCount: 7, // 6 videos + 1 load more button
+                ),
+              ),
+            ],
           ),
         ],
       ),

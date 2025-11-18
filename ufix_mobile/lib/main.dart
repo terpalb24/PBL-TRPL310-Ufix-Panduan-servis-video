@@ -6,9 +6,7 @@ import 'screen/welcome_unlogged.dart';
 import 'screen/welcome_loggedin.dart';
 import 'screen/login.dart';
 import 'screen/signup.dart';
-import 'screen/homepage.dart';
-import 'screen/bookmark.dart';
-import 'screen/search.dart';
+import 'screen/mainScreen.dart';
 import 'screen/history.dart';
 import 'screen/seting.dart';
 import 'screen/searched.dart';
@@ -24,7 +22,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Electronics Learning App',
-      home: Homepage(), // Start with welcome screen
+      home: WelcomeUnlogged(), // Start with welcome screen
       routes: {
         // Authentication Flow
         '/unlogged': (context) => WelcomeUnlogged(),
@@ -33,10 +31,8 @@ class MyApp extends StatelessWidget {
         '/loggedin': (context) => WelcomeLoggedin(),
         
         // Main App Flow
-        '/home': (context) => Homepage(),
-        '/search': (context) => Search(),
+        '/front': (context) => frontScreen(),
         '/searched_videos': (context) => SearchedVideos(),
-        '/bookmark': (context) => Bookmark(),
         '/history': (context) => History(),
         '/settings': (context) => Settings(),
         '/player': (context) => FakePlayer(),

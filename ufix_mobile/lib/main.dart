@@ -13,6 +13,7 @@ import 'screen/history.dart';
 import 'screen/seting.dart';
 import 'screen/searched.dart';
 import 'screen/fakeplayer.dart';
+import 'screen/mainScreen.dart';
 
 void main() {
   runApp(MyApp());
@@ -24,7 +25,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Electronics Learning App',
-      home: SignupScreen(), // Start with welcome screen
+      home: frontScreen(), // Start with welcome screen
       routes: {
         // Authentication Flow
         '/unlogged': (context) => WelcomeUnlogged(),
@@ -40,6 +41,7 @@ class MyApp extends StatelessWidget {
         '/history': (context) => History(),
         '/settings': (context) => Settings(),
         '/player': (context) => FakePlayer(),
+        '/main': (context) => frontScreen()
       },
       debugShowCheckedModeBanner: false,
     );

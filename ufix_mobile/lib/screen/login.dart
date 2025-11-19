@@ -42,7 +42,7 @@ class _ScreenLoginState extends State<ScreenLogin> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Berhasil Masuk!')),
       );
-      Navigator.pushReplacementNamed(context, '/home');
+      Navigator.pushReplacementNamed(context, '/front');
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(result['message'] ?? 'Gagal Masuk')),

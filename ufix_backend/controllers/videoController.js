@@ -24,11 +24,11 @@ const getVideoNew = async (req, res) => {
   }
 };
 
-const streamVideo = (req, res) => {
+const watchVideo = (req, res) => {
   const videoId = req.params.id;
 
   // Get video info from database
-  const query = 'SELECT video_path, mime_type FROM videos WHERE id = ?';
+  const query = 'SELECT video_path, mime_type FROM video WHERE id = ?';
   db.query(query, [videoId], (err, results) => {
     if (err || results.length === 0) {
       return res.status(404).json({
@@ -85,7 +85,7 @@ const streamVideo = (req, res) => {
 const getVideoUrl = (req, res) => {
   const videoId = req.params.id;
 
-  const query = 'SELECT id, title, video_path FROM video WHERE id = ?';
+  const query = 'SELECT id, judul, video_path FROM video WHERE id = ?';
   db.query(query, [videoId], (err, results) => {
     if (err || results.length === 0) {
       return res.status(404).json({
@@ -108,8 +108,4 @@ const getVideoUrl = (req, res) => {
   });
 };
 
-module.exports = {
-  streamVideo,
-  getVideoUrl
-};
-module.exports = { getVideoNew };
+module.exports = { getVideoNew, watchVideo, getVideoUrl };

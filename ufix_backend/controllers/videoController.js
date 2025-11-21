@@ -1,6 +1,7 @@
 const db = require("../config/database");
 const fs = require("fs");
 const path = require("path");
+const { dbPromise } = require("../config/database");
 
 
 const getVideoNew = async (req, res) => {
@@ -8,7 +9,7 @@ const getVideoNew = async (req, res) => {
     const selectVideoQuery =
       "SELECT title, thumbnailPath, sentDate FROM video ORDER BY sentDate DESC";
 
-    const [videos] = await db.execute(selectVideoQuery);
+    const [videos] = await dbPromise.execute(selectVideoQuery);
 
     res.json({
       success: true,
@@ -24,13 +25,15 @@ const getVideoNew = async (req, res) => {
   }
 };
 
-const watchVideo = (req, res) => {
-  const videoId = req.params.id;
+const watchVideo = async (req, res) => { // stream function - Jauharil
+  try {
+    const videoId = req.params.id;
+    console.log('watchVideo called for video ID:', videoId);
 
-  // Get video info from database
-  const query = 'SELECT video_path, mime_type FROM video WHERE id = ?';
-  db.query(query, [videoId], (err, results) => {
-    if (err || results.length === 0) {
+    const query = 'SELECT videoPath, mime_type FROM video WHERE idVideo = ?';
+    const [results] = await dbPromise.execute(query, [videoId]);
+
+    if (results.length === 0) {
       return res.status(404).json({
         success: false,
         message: 'Video not found'
@@ -38,9 +41,9 @@ const watchVideo = (req, res) => {
     }
 
     const video = results[0];
-    const videoPath = path.join(__dirname, '..', video.video_path);
+    const videoPath = path.join(__dirname, '..', video.videoPath);
 
-    // Check if file exists
+    // Check if it actually exists - Jauharil
     if (!fs.existsSync(videoPath)) {
       return res.status(404).json({
         success: false,
@@ -79,15 +82,24 @@ const watchVideo = (req, res) => {
       res.writeHead(200, head);
       fs.createReadStream(videoPath).pipe(res);
     }
-  });
+  } catch (error) {
+    console.error('Error in watchVideo:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error: ' + error.message
+    });
+  }
 };
 
-const getVideoUrl = (req, res) => {
-  const videoId = req.params.id;
+const getVideoUrl = async (req, res) => { // url maker - Jauharil
+  try {
+    const videoId = req.params.id;
+    console.log('getVideoUrl called for video ID:', videoId);
 
-  const query = 'SELECT id, judul, video_path FROM video WHERE id = ?';
-  db.query(query, [videoId], (err, results) => {
-    if (err || results.length === 0) {
+    const query = 'SELECT idVideo, title, videoPath FROM video WHERE idVideo = ?';
+    const [results] = await dbPromise.execute(query, [videoId]);
+
+    if (results.length === 0) {
       return res.status(404).json({
         success: false,
         message: 'Video not found'
@@ -95,17 +107,22 @@ const getVideoUrl = (req, res) => {
     }
 
     const video = results[0];
+    console.log('Found video:', video);
     
-    // Return the streaming URL
     res.json({
       success: true,
       video: {
-        id: video.id,
-        title: video.title,
-        videoUrl: `http://${req.get('host')}/api/stream/video/${video.id}`,
+        id: video.idVideo,
+        judul: video.title,
+        videoUrl: `http://${req.get('host')}/api/video/watch/${video.idVideo}`,
       }
     });
-  });
+  } catch (error) {
+    console.error('Error in getVideoUrl:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error: ' + error.message
+    });
+  }
 };
-
 module.exports = { getVideoNew, watchVideo, getVideoUrl };

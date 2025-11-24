@@ -1,20 +1,28 @@
 const mysql = require('mysql2');
 require('dotenv').config();
 
-const connection = mysql.createConnection({
-  host: process.env.DB_HOST || 'localhost',
-  user: process.env.DB_USER || 'root',
-  password: process.env.DB_PASSWORD || '',
-  database: process.env.DB_NAME || 'ufix_db'
+// Create connection pool
+const db = mysql.createPool({
+  host: 'localhost',
+  user: 'root',
+  password: '',
+  database: 'ufix',
+  waitForConnections: true,
+  connectionLimit: 10,
+  queueLimit: 0
 });
 
-// Connect to MySQL
-connection.connect((err) => {
+// Create promise wrapper
+const dbPromise = db.promise();
+
+// Test connection
+db.getConnection((err, connection) => {
   if (err) {
-    console.error('Error connecting to MySQL:', err);
-    return;
+    console.error('Database connection failed:', err);
+  } else {
+    console.log('✅ Database connected!');
+    connection.release();
   }
-  console.log('Connected to MySQL database');
 });
 
-module.exports = connection;
+module.exports = { db, dbPromise };

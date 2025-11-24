@@ -10,7 +10,7 @@ import 'screen/homepage.dart';
 import 'screen/bookmark.dart';
 import 'screen/search.dart';
 import 'screen/history.dart';
-import 'screen/seting.dart';
+import 'screen/settings.dart';
 import 'screen/searched.dart';
 import 'screen/fakeplayer.dart';
 
@@ -24,7 +24,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Electronics Learning App',
-      home: Homepage(), // Start with welcome screen
+      home: WelcomeUnlogged(), // Start with welcome screen
       routes: {
         // Authentication Flow
         '/unlogged': (context) => WelcomeUnlogged(),
@@ -38,7 +38,7 @@ class MyApp extends StatelessWidget {
         '/searched_videos': (context) => SearchedVideos(),
         '/bookmark': (context) => Bookmark(),
         '/history': (context) => History(),
-        '/settings': (context) => Settings(),
+        '/settings': (context) => const Settings(),
         '/player': (context) => FakePlayer(),
       },
       debugShowCheckedModeBanner: false,

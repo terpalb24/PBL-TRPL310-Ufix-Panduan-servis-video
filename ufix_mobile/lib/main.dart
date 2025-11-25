@@ -36,8 +36,10 @@ class MyApp extends StatelessWidget {
         '/searched_videos': (context) => SearchedVideos(),
         '/history': (context) => History(),
         '/settings': (context) => Settings(),
-        '/player': (context) => FakePlayer(),
-        '/comments': (context) => CommentsScreen(),
+        '/player': (context) => Player(
+          url_video: '',
+          judul_video: '',
+        ),
       },
       debugShowCheckedModeBanner: false,
     );

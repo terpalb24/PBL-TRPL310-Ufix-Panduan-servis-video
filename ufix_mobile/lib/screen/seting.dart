@@ -16,7 +16,7 @@ class Settings extends StatelessWidget {
           margin: EdgeInsets.all(4),
           child: IconButton(
             onPressed: () {
-              Navigator.pushNamed(context, '/home');
+              Navigator.pushNamed(context, '/front');
             },
             icon: Icon(Icons.arrow_back_rounded),
           ),
@@ -88,28 +88,6 @@ class Settings extends StatelessWidget {
                 ),
               ),
             ),
-          ),
-        ],
-      ),
-      bottomNavigationBar: BottomNavigationBar(
-        backgroundColor: Color(0xFF3A567A),
-        selectedItemColor: Color(0XFFFF7F00),
-        unselectedItemColor: Color(0XFFF7F7FA),
-        items: [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home),
-            activeIcon: Icon(Icons.home_filled),
-            label: 'Home',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.search),
-            activeIcon: Icon(Icons.search),
-            label: 'search',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.bookmark),
-            activeIcon: Icon(Icons.bookmark),
-            label: 'bookmark',
           ),
         ],
       ),

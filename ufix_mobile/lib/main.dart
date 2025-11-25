@@ -11,6 +11,7 @@ import 'screen/history.dart';
 import 'screen/seting.dart';
 import 'screen/searched.dart';
 import 'screen/fakeplayer.dart';
+import 'screen/comments.dart';
 
 void main() {
   runApp(MyApp());
@@ -35,6 +36,7 @@ class MyApp extends StatelessWidget {
         '/searched_videos': (context) => SearchedVideos(),
         '/history': (context) => History(),
         '/settings': (context) => Settings(),
+        '/comments': (context) => CommentsScreen(),
         '/player': (context) => Player(
           url_video: '',
           judul_video: '',

@@ -11,6 +11,7 @@ import 'screen/history.dart';
 import 'screen/settings.dart';
 import 'screen/searched.dart';
 import 'screen/fakeplayer.dart';
+import 'screen/comments.dart';
 
 void main() {
   runApp(MyApp());
@@ -22,7 +23,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Electronics Learning App',
-      home: WelcomeUnlogged(), // Start with welcome screen
+      home: frontScreen(), // Start with welcome screen
       routes: {
         // Authentication Flow
         '/unlogged': (context) => WelcomeUnlogged(),
@@ -35,6 +36,7 @@ class MyApp extends StatelessWidget {
         '/searched_videos': (context) => SearchedVideos(),
         '/history': (context) => History(),
         '/settings': (context) => Settings(),
+        '/comments': (context) => CommentsScreen(),
         '/player': (context) => Player(
           url_video: '',
           judul_video: '',

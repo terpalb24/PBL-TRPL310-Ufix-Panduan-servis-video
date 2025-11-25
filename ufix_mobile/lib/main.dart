@@ -11,6 +11,7 @@ import 'screen/history.dart';
 import 'screen/seting.dart';
 import 'screen/searched.dart';
 import 'screen/fakeplayer.dart';
+import 'screen/comments.dart';
 
 void main() {
   runApp(MyApp());
@@ -36,6 +37,7 @@ class MyApp extends StatelessWidget {
         '/history': (context) => History(),
         '/settings': (context) => Settings(),
         '/player': (context) => FakePlayer(),
+        '/comments': (context) => CommentsScreen(),
       },
       debugShowCheckedModeBanner: false,
     );

@@ -72,7 +72,10 @@ class FakePlayer extends StatelessWidget {
                 children: [
                   _buildSideButton('Detail'),
                   SizedBox(height: 20),
-                  _buildSideButton('Komentar'),
+                  GestureDetector(
+                    onTap: () => Navigator.pushNamed(context, '/comments'),
+                    child: _buildSideButton('Komentar'),
+                  ),
                   SizedBox(height: 20),
                   _buildSideButton('Bookmark'),
                 ],

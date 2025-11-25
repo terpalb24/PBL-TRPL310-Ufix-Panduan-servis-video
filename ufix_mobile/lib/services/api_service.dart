@@ -1,12 +1,12 @@
 // lib/services/api_service.dart
 import 'dart:convert';
-import 'dart:io';
 import 'package:http/http.dart' as http;
+import 'platform_io.dart' if (dart.library.html) 'platform_web.dart' as platform;
 
 class ApiService {
   static String get baseUrl {
-    if (Platform.isAndroid) {
-      // untuk emulator Android 
+    if (platform.isAndroid) {
+      // untuk emulator Android
       return 'http://10.0.2.2:3000/api/auth';
     } else {
       // jika jalan di web atau HP fisik

@@ -8,7 +8,7 @@ import 'screen/login.dart';
 import 'screen/signup.dart';
 import 'screen/mainScreen.dart';
 import 'screen/history.dart';
-import 'screen/seting.dart';
+import 'screen/settings.dart';
 import 'screen/searched.dart';
 import 'screen/fakeplayer.dart';
 import 'screen/comments.dart';

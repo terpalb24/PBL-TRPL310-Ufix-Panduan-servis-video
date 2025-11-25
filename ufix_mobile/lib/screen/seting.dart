@@ -16,7 +16,7 @@ class Settings extends StatelessWidget {
           margin: EdgeInsets.all(4),
           child: IconButton(
             onPressed: () {
-              Navigator.pushNamed(context, '/home');
+              Navigator.pushNamed(context, '/front');
             },
             icon: Icon(Icons.arrow_back_rounded),
           ),

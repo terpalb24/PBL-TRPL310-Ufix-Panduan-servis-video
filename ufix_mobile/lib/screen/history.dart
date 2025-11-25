@@ -2,38 +2,38 @@
 import 'package:flutter/material.dart';
 
 class History extends StatelessWidget {
+  const History({super.key});
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        backgroundColor: Color(0xFF3A567A),
+        foregroundColor: Color(0xFFF7F7FA),
+        elevation: 8,
+
+        leading: Container(
+          margin: EdgeInsets.all(4),
+          child: IconButton(
+            onPressed: () {
+              Navigator.pushNamed(context, '/home');
+            },
+            icon: Icon(Icons.arrow_back_rounded),
+          ),
+        ),
+
+        title: Text(
+          'History',
+          style: TextStyle(
+            color: Color(0xFFF7F7FA),
+            fontFamily: 'Kodchasan',
+            fontSize: 24,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+      ),
       body: Column(
         children: [
-          // Header
-          Container(
-            width: MediaQuery.of(context).size.width,
-            height: 69,
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 11),
-            decoration: BoxDecoration(
-              color: const Color(0xFF3A567A),
-              border: Border.all(
-                width: 1,
-                color: const Color(0xFF3A567A),
-              ),
-            ),
-            child: Row(
-              children: [
-                Text(
-                  'History',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 36,
-                    fontFamily: 'Kodchasan',
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          
           // History list
           Expanded(
             child: Container(
@@ -42,24 +42,24 @@ class History extends StatelessWidget {
               child: SingleChildScrollView(
                 child: Column(
                   children: [
-                    _buildHistoryItem(),
+                    _buildHistoryItem(context),
                     const SizedBox(height: 12),
-                    _buildHistoryItem(),
+                    _buildHistoryItem(context),
                     const SizedBox(height: 12),
-                    _buildHistoryItem(),
+                    _buildHistoryItem(context),
                     const SizedBox(height: 12),
-                    _buildHistoryItem(),
+                    _buildHistoryItem(context),
                     const SizedBox(height: 12),
-                    _buildHistoryItem(),
+                    _buildHistoryItem(context),
                     const SizedBox(height: 12),
-                    _buildHistoryItem(),
+                    _buildHistoryItem(context),
                     const SizedBox(height: 12),
-                    _buildHistoryItem(),
+                    _buildHistoryItem(context),
                     const SizedBox(height: 12),
-                    _buildHistoryItem(),
+                    _buildHistoryItem(context),
                     const SizedBox(height: 12),
-                    _buildHistoryItem(),
-                    
+                    _buildHistoryItem(context),
+
                     // Load more button
                     const SizedBox(height: 28),
                     Container(
@@ -69,7 +69,10 @@ class History extends StatelessWidget {
                         gradient: LinearGradient(
                           begin: Alignment(0.50, 1.00),
                           end: Alignment(0.50, 0.00),
-                          colors: [const Color(0xFFADE7F7), const Color(0xFFF7F7FA)],
+                          colors: [
+                            const Color(0xFFADE7F7),
+                            const Color(0xFFF7F7FA),
+                          ],
                         ),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(30),
@@ -92,189 +95,87 @@ class History extends StatelessWidget {
               ),
             ),
           ),
-          
-          // Bottom navigation
-          Container(
-            width: MediaQuery.of(context).size.width,
-            height: 75,
-            color: const Color(0xFF3A567A),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: [
-                // Home button
-                GestureDetector(
-                  onTap: () {
-                    Navigator.pushNamed(context, '/home');
-                  },
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(Icons.home, color: const Color(0xFFF7F7FA), size: 24),
-                      const SizedBox(height: 4),
-                      Text(
-                        'Home',
-                        style: TextStyle(
-                          color: const Color(0xFFF7F7FA),
-                          fontSize: 11,
-                          fontFamily: 'Kodchasan',
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                
-                // Search button
-                GestureDetector(
-                  onTap: () {
-                    Navigator.pushNamed(context, '/search');
-                  },
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(Icons.search, color: const Color(0xFFF7F7FA), size: 24),
-                      const SizedBox(height: 4),
-                      Text(
-                        'Search',
-                        style: TextStyle(
-                          color: const Color(0xFFF7F7FA),
-                          fontSize: 11,
-                          fontFamily: 'Kodchasan',
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                
-                // Bookmark button
-                GestureDetector(
-                  onTap: () {
-                    Navigator.pushNamed(context, '/bookmark');
-                  },
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(Icons.bookmark, color: const Color(0xFFF7F7FA), size: 24),
-                      const SizedBox(height: 4),
-                      Text(
-                        'Bookmark',
-                        style: TextStyle(
-                          color: const Color(0xFFF7F7FA),
-                          fontSize: 11,
-                          fontFamily: 'Kodchasan',
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                
-                // History button (you can add this to make it accessible)
-                GestureDetector(
-                  onTap: () {
-                    // Already on history page
-                  },
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(Icons.history, color: const Color(0xFFFF7F00), size: 24),
-                      const SizedBox(height: 4),
-                      Text(
-                        'History',
-                        style: TextStyle(
-                          color: const Color(0xFFFF7F00),
-                          fontSize: 11,
-                          fontFamily: 'Kodchasan',
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
         ],
       ),
     );
   }
-  
+
   // Helper method for history items
-  Widget _buildHistoryItem() {
-    return Container(
-      width: double.infinity,
-      height: 98,
-      padding: const EdgeInsets.all(12),
-      decoration: ShapeDecoration(
-        gradient: LinearGradient(
-          begin: Alignment(0.98, -0.00),
-          end: Alignment(0.02, 1.00),
-          colors: [const Color(0xFFEFF7FC), const Color(0xFFF7F7FA)],
-        ),
-        shape: RoundedRectangleBorder(
-          side: BorderSide(
-            width: 1,
-            color: const Color(0x333A567A),
+  Widget _buildHistoryItem(BuildContext context) {
+    return GestureDetector(
+      onTap: () {
+        Navigator.pushNamed(context, '/player');
+      },
+      child: Container(
+        width: double.infinity,
+        height: 100,
+        padding: const EdgeInsets.all(12),
+        decoration: ShapeDecoration(
+          gradient: LinearGradient(
+            begin: Alignment(0.98, -0.00),
+            end: Alignment(0.02, 1.00),
+            colors: [const Color(0xFFEFF7FC), const Color(0xFFF7F7FA)],
           ),
-          borderRadius: BorderRadius.circular(20),
+          shape: RoundedRectangleBorder(
+            side: BorderSide(width: 1, color: const Color(0x333A567A)),
+            borderRadius: BorderRadius.circular(20),
+          ),
         ),
-      ),
-      child: Row(
-        children: [
-          // Thumbnail
-          Container(
-            width: 140,
-            height: 80,
-            decoration: ShapeDecoration(
-              image: DecorationImage(
-                image: NetworkImage("https://placehold.co/140x80"),
-                fit: BoxFit.cover,
-              ),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(20),
+        child: Row(
+          children: [
+            // Thumbnail
+            Container(
+              width: 140,
+              height: 80,
+              decoration: ShapeDecoration(
+                image: DecorationImage(
+                  image: AssetImage('Asset/Thumbnail-Fake.png'),
+                  fit: BoxFit.cover,
+                ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(20),
+                ),
               ),
             ),
-          ),
-          const SizedBox(width: 11),
-          
-          // Video info
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                Text(
-                  'Video_Title',
-                  style: TextStyle(
-                    color: Colors.black,
-                    fontSize: 20,
-                    fontFamily: 'Jost',
-                    fontWeight: FontWeight.w400,
+            const SizedBox(width: 11),
+            // Video info
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  Text(
+                    'Video_Title',
+                    style: TextStyle(
+                      color: Colors.black,
+                      fontSize: 18,
+                      fontFamily: 'Jost',
+                      fontWeight: FontWeight.w400,
+                    ),
                   ),
-                ),
-                Text(
-                  'Uploader',
-                  style: TextStyle(
-                    color: Colors.black,
-                    fontSize: 14,
-                    fontFamily: 'Jost',
-                    fontWeight: FontWeight.w300,
+                  Text(
+                    'Uploader',
+                    style: TextStyle(
+                      color: Colors.black,
+                      fontSize: 12,
+                      fontFamily: 'Jost',
+                      fontWeight: FontWeight.w300,
+                    ),
                   ),
-                ),
-                Text(
-                  'Date/Month/Year',
-                  style: TextStyle(
-                    color: Colors.black,
-                    fontSize: 10,
-                    fontFamily: 'Jost',
-                    fontWeight: FontWeight.w300,
+                  Text(
+                    'Date/Month/Year',
+                    style: TextStyle(
+                      color: Colors.black,
+                      fontSize: 8,
+                      fontFamily: 'Jost',
+                      fontWeight: FontWeight.w300,
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

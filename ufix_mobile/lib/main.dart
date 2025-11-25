@@ -23,7 +23,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Electronics Learning App',
-      home: WelcomeUnlogged(), // Start with welcome screen
+      home: frontScreen(), // Start with welcome screen
       routes: {
         // Authentication Flow
         '/unlogged': (context) => WelcomeUnlogged(),

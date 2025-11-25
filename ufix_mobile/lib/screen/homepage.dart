@@ -57,7 +57,9 @@ class _HomepageState extends State<Homepage> {
 
   void _navigateToVideoPlayer(Video video) {
     Navigator.pushNamed(
-      context, '/player'
+      context, 
+      '/player',
+      arguments: video, // Pass the video object to player
     );
   }
 
@@ -71,7 +73,7 @@ class _HomepageState extends State<Homepage> {
         leading: Container(
           margin: EdgeInsets.all(8),
           child: Image.asset(
-            'assets/logo.png', // Fixed path
+            'Asset/logo.png',
             width: 210,
             height: 110,
           ),
@@ -135,7 +137,7 @@ class _HomepageState extends State<Homepage> {
                         height: 164,
                         decoration: BoxDecoration(
                           image: DecorationImage(
-                            image: AssetImage('assets/Thumbnail-Fake.png'), // Fixed path
+                            image: AssetImage('Asset/Thumbnail-Fake.png'),
                             fit: BoxFit.cover,
                           ),
                         ),
@@ -332,7 +334,7 @@ class _HomepageState extends State<Homepage> {
               height: 80,
               decoration: ShapeDecoration(
                 image: DecorationImage(
-                  image: NetworkImage(video.thumbnailUrl ?? 'assets/Thumbnail-Fake.png'),
+                  image: _getThumbnailImage(video.thumbnailPath),
                   fit: BoxFit.cover,
                 ),
                 shape: RoundedRectangleBorder(
@@ -359,7 +361,7 @@ class _HomepageState extends State<Homepage> {
                     overflow: TextOverflow.ellipsis,
                   ),
                   Text(
-                    video.uploaderName ?? 'Uploader',
+                    _getUploaderText(video.uploader),
                     style: TextStyle(
                       color: Colors.black,
                       fontSize: 12,
@@ -368,7 +370,16 @@ class _HomepageState extends State<Homepage> {
                     ),
                   ),
                   Text(
-                    _formatDate(video.createdAt),
+                    _formatDuration(video.durationSec),
+                    style: TextStyle(
+                      color: Colors.black,
+                      fontSize: 10,
+                      fontFamily: 'Jost',
+                      fontWeight: FontWeight.w300,
+                    ),
+                  ),
+                  Text(
+                    _formatDate(video.sentDate),
                     style: TextStyle(
                       color: Colors.black,
                       fontSize: 8,
@@ -385,8 +396,37 @@ class _HomepageState extends State<Homepage> {
     );
   }
 
+  // Helper method to get thumbnail image
+  ImageProvider _getThumbnailImage(String thumbnailPath) {
+    if (thumbnailPath.startsWith('http')) {
+      return NetworkImage(thumbnailPath);
+    } else if (thumbnailPath.isNotEmpty) {
+      // Assuming thumbnailPath is a local asset path
+      return AssetImage(thumbnailPath);
+    } else {
+      return AssetImage('Asset/Thumbnail-Fake.png');
+    }
+  }
+
+  // Helper method to format uploader information
+  String _getUploaderText(int? uploader) {
+    return uploader != null ? 'User $uploader' : 'Unknown Uploader';
+  }
+
+  // Helper method to format duration
+  String _formatDuration(int? durationSec) {
+    if (durationSec == null) return 'Duration: Unknown';
+    
+    final duration = Duration(seconds: durationSec);
+    final minutes = duration.inMinutes;
+    final seconds = duration.inSeconds.remainder(60);
+    
+    return 'Duration: ${minutes}m ${seconds}s';
+  }
+
+  // Helper method to format date
   String _formatDate(DateTime? date) {
-    if (date == null) return 'Date/Month/Year';
-    return '${date.day}/${date.month}/${date.year}';
+    if (date == null) return 'Date unknown';
+    return 'Uploaded: ${date.day}/${date.month}/${date.year}';
   }
 }

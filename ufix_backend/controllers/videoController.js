@@ -1,5 +1,4 @@
-const db = require("../config/database");
-const fs = require("fs");
+const fs = require("fs"); // removed db import because it was unused
 const path = require("path");
 const { dbPromise } = require("../config/database");
 

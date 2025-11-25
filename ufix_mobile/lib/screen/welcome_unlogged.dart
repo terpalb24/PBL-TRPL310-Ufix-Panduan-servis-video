@@ -40,7 +40,7 @@ class WelcomeUnlogged extends StatelessWidget {
                           height: 181,
                           decoration: const BoxDecoration(
                             image: DecorationImage(
-                              image: AssetImage('assets/logo.png'), // Fixed path
+                              image: AssetImage('Asset/logo.png'), // Fixed path
                               fit: BoxFit.cover,
                             ),
                           ),

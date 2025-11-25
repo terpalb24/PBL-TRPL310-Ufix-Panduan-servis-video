@@ -19,15 +19,16 @@ class Video {
     this.mimeType,
   });
 
+  // In video_model.dart
   factory Video.fromJson(Map<String, dynamic> json) {
     return Video(
-      idVideo: json['idVideo'] as int? ?? 0,
+      idVideo: json['idVideo'] as int, // Remove the ?? 0 default!
       title: json['title'] as String? ?? '',
       durationSec: json['durationSec'] as int?,
       videoPath: json['videoPath'] as String? ?? '',
       thumbnailPath: json['thumbnailPath'] as String? ?? '',
-      sentDate: json['sentDate'] != null 
-          ? DateTime.tryParse(json['sentDate']) 
+      sentDate: json['sentDate'] != null
+          ? DateTime.tryParse(json['sentDate'])
           : null,
       uploader: json['uploader'] as int?,
       mimeType: json['mime_type'] as String? ?? 'video/mp4',
@@ -78,7 +79,7 @@ class Video {
   @override
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
-    
+
     return other is Video &&
         other.idVideo == idVideo &&
         other.title == title &&

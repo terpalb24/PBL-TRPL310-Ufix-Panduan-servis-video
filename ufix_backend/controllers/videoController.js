@@ -4,22 +4,41 @@ const { dbPromise } = require("../config/database");
 
 
 const getVideoNew = async (req, res) => {
+  console.log('=== getVideoNew called ===');
+  
   try {
-    const selectVideoQuery =
-      "SELECT title, thumbnailPath, sentDate FROM video ORDER BY sentDate DESC";
-
-    const [videos] = await dbPromise.execute(selectVideoQuery);
-
+    console.log('Testing with simple count query...');
+    
+    // First, try a super simple query
+    const [countResult] = await dbPromise.execute('SELECT COUNT(*) as count FROM video');
+    console.log('Count result:', countResult[0].count);
+    
+    // If that works, try with just 1 field
+    console.log('Testing with single field...');
+    const [simpleVideos] = await dbPromise.execute('SELECT idVideo FROM video LIMIT 5');
+    console.log('Simple query result:', simpleVideos);
+    
+    // If that works, try the full query
+    console.log('Testing full query...');
+    const [videos] = await dbPromise.execute(`
+      SELECT idVideo, title 
+      FROM video 
+      LIMIT 5
+    `);
+    
+    console.log('Full query successful, found:', videos.length, 'videos');
+    
     res.json({
       success: true,
       count: videos.length,
       videos: videos,
     });
+    
   } catch (error) {
-    console.error("Error fetching newest videos:", error);
+    console.error("Error in getVideoNew:", error);
     res.status(500).json({
       success: false,
-      message: "Server error",
+      message: "Server error: " + error.message
     });
   }
 };

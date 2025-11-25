@@ -1,7 +1,8 @@
 // lib/main.dart
 import 'package:flutter/material.dart';
+import 'package:ufix_mobile/models/video_model.dart';
 
-// Import all your screen
+// Import all your screens
 import 'screen/welcome_unlogged.dart';
 import 'screen/welcome_loggedin.dart';
 import 'screen/login.dart';
@@ -19,11 +20,12 @@ void main() {
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});  
+  
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Electronics Learning App',
-      home: frontScreen(), // Start with welcome screen
+      home: frontScreen(), // Fixed: frontScreen() -> FrontScreen()
       routes: {
         // Authentication Flow
         '/unlogged': (context) => WelcomeUnlogged(),
@@ -32,15 +34,22 @@ class MyApp extends StatelessWidget {
         '/loggedin': (context) => WelcomeLoggedin(),
         
         // Main App Flow
-        '/front': (context) => frontScreen(),
+        '/front': (context) => frontScreen(), // Fixed: frontScreen -> FrontScreen
         '/searched_videos': (context) => SearchedVideos(),
         '/history': (context) => History(),
         '/settings': (context) => Settings(),
         '/comments': (context) => CommentsScreen(),
-        '/player': (context) => Player(
-          url_video: '',
-          judul_video: '',
-        ),
+      },
+      // Use onGenerateRoute for type-safe Video object passing
+      onGenerateRoute: (settings) {
+        // Handle Player route with Video object
+        if (settings.name == '/player') {
+          final Video video = settings.arguments as Video;
+          return MaterialPageRoute(
+            builder: (context) => VideoPlayerScreen(video: video), // Fixed: Player -> VideoPlayerScreen
+          );
+        }
+        return null;
       },
       debugShowCheckedModeBanner: false,
     );

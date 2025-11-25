@@ -71,20 +71,7 @@ class _ScreenLoginState extends State<ScreenLogin> {
                 ),
 
                 const SizedBox(height: 20),
-
                 
-                Container(
-                  width: 120,
-                  height: 20,
-                  decoration: const BoxDecoration(
-                    image: DecorationImage(
-                      image: AssetImage('Asset/logo.png'), // Fixed path
-                      fit: BoxFit.cover,
-                    ),
-                  ),
-                ),
-                
-                const SizedBox(height: 35),
                 // Email field
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 30),

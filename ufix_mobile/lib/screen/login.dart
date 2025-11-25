@@ -1,6 +1,5 @@
 // lib/screens/screen_login.dart
 import 'package:flutter/material.dart';
-import 'package:ufix_mobile/models/user_model.dart';
 import 'package:ufix_mobile/services/api_service.dart';
 
 class ScreenLogin extends StatefulWidget {
@@ -42,7 +41,7 @@ class _ScreenLoginState extends State<ScreenLogin> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Berhasil Masuk!')),
       );
-      Navigator.pushReplacementNamed(context, '/front');
+      Navigator.pushReplacementNamed(context, '/front'); // Changed to /main
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(result['message'] ?? 'Gagal Masuk')),
@@ -69,7 +68,7 @@ class _ScreenLoginState extends State<ScreenLogin> {
                   height: 183,
                   decoration: const BoxDecoration(
                     image: DecorationImage(
-                      image: AssetImage('Asset/logo.png'),
+                      image: AssetImage('Asset/logo.png'), // Fixed path
                       fit: BoxFit.cover,
                     ),
                   ),

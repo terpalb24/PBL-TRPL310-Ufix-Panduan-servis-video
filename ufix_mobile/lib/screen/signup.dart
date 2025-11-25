@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:ufix_mobile/models/user_model.dart';
 import 'package:ufix_mobile/services/api_service.dart';
 
 class SignupScreen extends StatefulWidget {

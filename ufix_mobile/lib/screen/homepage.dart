@@ -1,47 +1,101 @@
 // lib/screens/homepage.dart
 import 'package:flutter/material.dart';
+import 'package:ufix_mobile/services/api_service.dart';
+import 'package:ufix_mobile/models/video_model.dart';
 
-class Homepage extends StatelessWidget {
+class Homepage extends StatefulWidget {
   const Homepage({super.key});
+
+  @override
+  State<Homepage> createState() => _HomepageState();
+}
+
+class _HomepageState extends State<Homepage> {
+  List<Video> _videos = [];
+  bool _isLoading = true;
+  String _error = '';
+  String _userName = 'User';
+
+  @override
+  void initState() {
+    super.initState();
+    _loadVideos();
+    _loadUserData();
+  }
+
+  Future<void> _loadVideos() async {
+    setState(() {
+      _isLoading = true;
+      _error = '';
+    });
+
+    final result = await ApiService.getNewVideos();
+    
+    setState(() {
+      _isLoading = false;
+    });
+
+    if (result['success']) {
+      final videosData = List<Map<String, dynamic>>.from(result['videos']);
+      setState(() {
+        _videos = videosData.map((videoData) => Video.fromJson(videoData)).toList();
+      });
+    } else {
+      setState(() {
+        _error = result['message'];
+      });
+    }
+  }
+
+  Future<void> _loadUserData() async {
+    // Load user data from your auth service or shared preferences
+    // For now, using a placeholder
+    setState(() {
+      _userName = 'User';
+    });
+  }
+
+  void _navigateToVideoPlayer(Video video) {
+    Navigator.pushNamed(
+      context, '/player'
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        //App bar home page, Jauharil
         backgroundColor: Color(0xFFF7F7FA),
         foregroundColor: Color(0xFF3A567A),
         elevation: 4,
-
         leading: Container(
           margin: EdgeInsets.all(8),
           child: Image.asset(
-            'Asset/logo.png',
+            'assets/logo.png', // Fixed path
             width: 210,
             height: 110,
-          ), // Logo, align kiri
+          ),
         ),
         title: SizedBox.shrink(),
         centerTitle: true,
-
         actions: [
           IconButton(
             onPressed: () {
               Navigator.pushNamed(context, '/history');
             },
             icon: Icon(Icons.history),
-          ), //Tombol History
+          ),
           IconButton(
             onPressed: () {
               Navigator.pushNamed(context, '/settings');
             },
             icon: Icon(Icons.settings),
-          ), //Tombol Settings
+          ),
         ],
       ),
       body: Stack(
         children: [
-          // Background (covers entire screen, fixed)
+          // Background
           Container(
             width: MediaQuery.of(context).size.width,
             height: MediaQuery.of(context).size.height,
@@ -67,7 +121,7 @@ class Homepage extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Welcome, (display_name)!',
+                        'Welcome, $_userName!',
                         style: TextStyle(
                           color: Colors.white,
                           fontSize: 24,
@@ -81,7 +135,7 @@ class Homepage extends StatelessWidget {
                         height: 164,
                         decoration: BoxDecoration(
                           image: DecorationImage(
-                            image: AssetImage('Asset/Thumbnail-Fake.png'),
+                            image: AssetImage('assets/Thumbnail-Fake.png'), // Fixed path
                             fit: BoxFit.cover,
                           ),
                         ),
@@ -107,7 +161,6 @@ class Homepage extends StatelessWidget {
                   width: double.infinity,
                   child: Row(
                     children: [
-                      // Suggested tab
                       Expanded(
                         child: Container(
                           height: 38,
@@ -131,7 +184,6 @@ class Homepage extends StatelessWidget {
                           ),
                         ),
                       ),
-                      // Newest tab
                       Expanded(
                         child: Opacity(
                           opacity: 0.50,
@@ -164,59 +216,86 @@ class Homepage extends StatelessWidget {
               ),
 
               // Video list section
-              SliverToBoxAdapter(
-                child: Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    children: [
-                      _buildVideoItem(context),
-                      const SizedBox(height: 10),
-                      _buildVideoItem(context),
-                      const SizedBox(height: 10),
-                      _buildVideoItem(context),
-                      const SizedBox(height: 10),
-                      _buildVideoItem(context),
-                      const SizedBox(height: 10),
-                      _buildVideoItem(context),
-                      const SizedBox(height: 10),
-                      _buildVideoItem(context),
-                      const SizedBox(height: 10),
-
-                      // Load more button
-                      const SizedBox(height: 20),
-                      Container(
-                        width: 100,
-                        height: 30,
-                        decoration: ShapeDecoration(
-                          gradient: LinearGradient(
-                            begin: Alignment(0.50, 1.00),
-                            end: Alignment(0.50, 0.00),
-                            colors: [
-                              const Color(0xFFADE7F7),
-                              const Color(0xFFF7F7FA),
-                            ],
-                          ),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(30),
-                          ),
-                        ),
-                        child: Center(
-                          child: Text(
-                            'Lebih Banyak',
+              if (_isLoading)
+                SliverToBoxAdapter(
+                  child: Container(
+                    height: 200,
+                    child: Center(
+                      child: CircularProgressIndicator(
+                        color: Color(0xFF3A567A),
+                      ),
+                    ),
+                  ),
+                )
+              else if (_error.isNotEmpty)
+                SliverToBoxAdapter(
+                  child: Container(
+                    height: 200,
+                    child: Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            'Error: $_error',
                             style: TextStyle(
-                              color: Colors.black,
-                              fontSize: 13,
-                              fontFamily: 'Jost',
-                              fontWeight: FontWeight.w400,
+                              color: Colors.red,
+                              fontSize: 16,
                             ),
                           ),
-                        ),
+                          SizedBox(height: 16),
+                          ElevatedButton(
+                            onPressed: _loadVideos,
+                            child: Text('Retry'),
+                          ),
+                        ],
                       ),
-                    ],
+                    ),
+                  ),
+                )
+              else
+                SliverList(
+                  delegate: SliverChildBuilderDelegate(
+                    (context, index) {
+                      if (index == _videos.length) {
+                        // Load more button
+                        return Container(
+                          width: 100,
+                          height: 30,
+                          margin: EdgeInsets.all(20),
+                          decoration: ShapeDecoration(
+                            gradient: LinearGradient(
+                              begin: Alignment(0.50, 1.00),
+                              end: Alignment(0.50, 0.00),
+                              colors: [
+                                const Color(0xFFADE7F7),
+                                const Color(0xFFF7F7FA),
+                              ],
+                            ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(30),
+                            ),
+                          ),
+                          child: Center(
+                            child: Text(
+                              'Lebih Banyak',
+                              style: TextStyle(
+                                color: Colors.black,
+                                fontSize: 13,
+                                fontFamily: 'Jost',
+                                fontWeight: FontWeight.w400,
+                              ),
+                            ),
+                          ),
+                        );
+                      }
+                      return Padding(
+                        padding: EdgeInsets.fromLTRB(16, 10, 16, 10),
+                        child: _buildVideoItem(context, _videos[index]),
+                      );
+                    },
+                    childCount: _videos.length + 1, // +1 for load more button
                   ),
                 ),
-              ),
             ],
           ),
         ],
@@ -225,10 +304,10 @@ class Homepage extends StatelessWidget {
   }
 
   // Helper method for video items
-  Widget _buildVideoItem(BuildContext context) {
+  Widget _buildVideoItem(BuildContext context, Video video) {
     return GestureDetector(
       onTap: () {
-        Navigator.pushNamed(context, '/player');
+        _navigateToVideoPlayer(video);
       },
       child: Container(
         width: double.infinity,
@@ -253,7 +332,7 @@ class Homepage extends StatelessWidget {
               height: 80,
               decoration: ShapeDecoration(
                 image: DecorationImage(
-                  image: AssetImage('Asset/Thumbnail-Fake.png'),
+                  image: NetworkImage(video.thumbnailUrl ?? 'assets/Thumbnail-Fake.png'),
                   fit: BoxFit.cover,
                 ),
                 shape: RoundedRectangleBorder(
@@ -269,16 +348,18 @@ class Homepage extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
                   Text(
-                    'Video_Title',
+                    video.title,
                     style: TextStyle(
                       color: Colors.black,
                       fontSize: 18,
                       fontFamily: 'Jost',
                       fontWeight: FontWeight.w400,
                     ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
                   ),
                   Text(
-                    'Uploader',
+                    video.uploaderName ?? 'Uploader',
                     style: TextStyle(
                       color: Colors.black,
                       fontSize: 12,
@@ -287,7 +368,7 @@ class Homepage extends StatelessWidget {
                     ),
                   ),
                   Text(
-                    'Date/Month/Year',
+                    _formatDate(video.createdAt),
                     style: TextStyle(
                       color: Colors.black,
                       fontSize: 8,
@@ -302,5 +383,10 @@ class Homepage extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  String _formatDate(DateTime? date) {
+    if (date == null) return 'Date/Month/Year';
+    return '${date.day}/${date.month}/${date.year}';
   }
 }

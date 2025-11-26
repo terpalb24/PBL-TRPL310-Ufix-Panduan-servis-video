@@ -125,4 +125,76 @@ const getVideoUrl = async (req, res) => { // url maker - Jauharil
     });
   }
 };
-module.exports = { getVideoNew, watchVideo, getVideoUrl };
+
+
+const addVideo = async (req, res) => {
+  try {
+    const { title, thumbnailPath, videoPath, mime_type } = req.body;
+
+    const query = `
+      INSERT INTO video (title, thumbnailPath, videoPath, mime_type, sentDate)
+      VALUES (?, ?, ?, ?, NOW())
+    `;
+
+    await dbPromise.execute(query, [title, thumbnailPath, videoPath, mime_type]);
+
+    res.json({
+      success: true,
+      message: "Video berhasil ditambahkan"
+    });
+  } catch (error) {
+    console.error("Error adding video:", error);
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+};
+
+
+const updateVideo = async (req, res) => {
+  try {
+    const id = req.params.id;
+    const { title, thumbnailPath, videoPath, mime_type } = req.body;
+
+    const query = `
+      UPDATE video
+      SET title = ?, thumbnailPath = ?, videoPath = ?, mime_type = ?
+      WHERE idVideo = ?
+    `;
+
+    await dbPromise.execute(query, [
+      title,
+      thumbnailPath,
+      videoPath,
+      mime_type,
+      id
+    ]);
+
+    res.json({
+      success: true,
+      message: "Video berhasil diperbarui"
+    });
+  } catch (error) {
+    console.error("Error updating video:", error);
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+};
+
+
+const deleteVideo = async (req, res) => {
+  try {
+    const id = req.params.id;
+
+    const query = "DELETE FROM video WHERE idVideo = ?";
+    await dbPromise.execute(query, [id]);
+
+    res.json({
+      success: true,
+      message: "Video berhasil dihapus"
+    });
+  } catch (error) {
+    console.error("Error deleting video:", error);
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+};
+
+ 
+module.exports = { getVideoNew, watchVideo, getVideoUrl, addVideo, updateVideo, deleteVideo};

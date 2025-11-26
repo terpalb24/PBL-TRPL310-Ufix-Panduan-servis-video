@@ -1,9 +1,62 @@
-// lib/screens/searched_videos.dart
+// lib/screens/searched.dart
 import 'package:flutter/material.dart';
+import 'package:ufix_mobile/services/api_service.dart';
 
-class SearchedVideos extends StatelessWidget {
+class SearchedVideos extends StatefulWidget {
   const SearchedVideos({super.key});
-  
+
+  @override
+  State<SearchedVideos> createState() => _SearchedVideosState();
+}
+
+class _SearchedVideosState extends State<SearchedVideos> {
+  bool _initialized = false;
+  bool _isLoading = true;
+  String _error = '';
+  String _query = '';
+  List<Map<String, dynamic>> _videos = [];
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (!_initialized) {
+      final args = ModalRoute.of(context)?.settings.arguments;
+      if (args is Map && args['query'] is String) {
+        _query = (args['query'] as String).trim();
+      }
+      _searchVideos();
+      _initialized = true;
+    }
+  }
+
+  Future<void> _searchVideos() async {
+    if (_query.isEmpty) {
+      setState(() {
+        _isLoading = false;
+        _error = 'Kata kunci pencarian tidak ditemukan.';
+      });
+      return;
+    }
+
+    setState(() {
+      _isLoading = true;
+      _error = '';
+    });
+
+    final result = await ApiService.searchVideos(_query);
+
+    if (!mounted) return;
+
+    setState(() {
+      _isLoading = false;
+      if (result['success'] == true && result['videos'] is List) {
+        _videos = List<Map<String, dynamic>>.from(result['videos'] as List);
+      } else {
+        _error = result['message']?.toString() ?? 'Gagal memuat hasil pencarian';
+      }
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -15,272 +68,307 @@ class SearchedVideos extends StatelessWidget {
             height: MediaQuery.of(context).size.height,
             color: const Color(0xFFF7F7FA),
           ),
-          
-          // Filter section
-          Positioned(
-            top: 0,
-            left: 0,
-            child: Container(
-              width: MediaQuery.of(context).size.width,
-              height: 135,
-              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 7),
-              decoration: BoxDecoration(
-                color: const Color(0xFFF7F7FA),
-                border: Border.all(width: 1, color: Colors.grey[300]!),
-              ),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  // Active filters
-                  Container(
-                    width: 350,
-                    height: 50,
-                    padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 12),
-                    decoration: ShapeDecoration(
-                      color: const Color(0xFFEFF7FC),
-                      shape: RoundedRectangleBorder(
-                        side: BorderSide(
-                          width: 1,
-                          color: const Color(0x663A567A),
-                        ),
-                        borderRadius: BorderRadius.circular(15),
-                      ),
-                    ),
-                    child: Row(
-                      children: [
-                        // Active filter chips
-                        Wrap(
-                          spacing: 8,
-                          children: [
-                            _buildActiveFilterChip('Tag'),
-                            _buildActiveFilterChip('Tag Long'),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 23),
-                  
-                  // Filter buttons
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+
+          SafeArea(
+            child: Column(
+              children: [
+                // TOP BAR
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  child: Row(
                     children: [
-                      _buildFilterButton('Urutkan dari'),
-                      _buildFilterButton('Saring Berdasarkan'),
+                      IconButton(
+                        icon: const Icon(Icons.arrow_back),
+                        onPressed: () => Navigator.pop(context),
+                      ),
+                      const SizedBox(width: 4),
+                      const Text(
+                        'Hasil Pencarian',
+                        style: TextStyle(
+                          color: Colors.black,
+                          fontSize: 18,
+                          fontFamily: 'Kodchasan',
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      const Spacer(),
                     ],
                   ),
-                ],
-              ),
-            ),
-          ),
-          
-          // Search results
-          Positioned(
-            top: 135,
-            left: 0,
-            child: Container(
-              width: MediaQuery.of(context).size.width,
-              height: MediaQuery.of(context).size.height - 210,
-              padding: const EdgeInsets.all(16),
-              child: SingleChildScrollView(
-                child: Column(
-                  children: [
-                    _buildVideoResultItem(),
-                    const SizedBox(height: 12),
-                    _buildVideoResultItem(),
-                    const SizedBox(height: 12),
-                    _buildVideoResultItem(),
-                    const SizedBox(height: 12),
-                    _buildVideoResultItem(),
-                    const SizedBox(height: 12),
-                    _buildVideoResultItem(),
-                    const SizedBox(height: 12),
-                    _buildVideoResultItem(),
-                    const SizedBox(height: 12),
-                    _buildVideoResultItem(),
-                    const SizedBox(height: 12),
-                    _buildVideoResultItem(),
-                    const SizedBox(height: 12),
-                    _buildVideoResultItem(),
-                    
-                    // Load more button
-                    const SizedBox(height: 28),
-                    Container(
-                      width: 100,
-                      height: 30,
-                      decoration: ShapeDecoration(
-                        gradient: LinearGradient(
-                          begin: Alignment(0.50, 1.00),
-                          end: Alignment(0.50, 0.00),
-                          colors: [const Color(0xFFADE7F7), const Color(0xFFF7F7FA)],
-                        ),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(30),
+                ),
+
+                // Query & filter info
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          _query.isEmpty ? '' : '"$_query"',
+                          style: const TextStyle(
+                            color: Color(0xFF3A567A),
+                            fontSize: 12,
+                            fontFamily: 'Jost',
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
                       ),
-                      child: Center(
-                        child: Text(
-                          'Lebih Banyak',
-                          style: TextStyle(
-                            color: Colors.black,
-                            fontSize: 13,
-                            fontFamily: 'Jost',
-                            fontWeight: FontWeight.w400,
+                      const SizedBox(width: 8),
+                      _buildActiveFilterChip('Semua'),
+                    ],
+                  ),
+                ),
+
+                const SizedBox(height: 8),
+
+                // Body
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: _buildBody(),
+                  ),
+                ),
+
+                if (!_isLoading && _error.isEmpty && _videos.isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 16),
+                    child: GestureDetector(
+                      onTap: _searchVideos,
+                      child: Container(
+                        width: 120,
+                        height: 32,
+                        decoration: ShapeDecoration(
+                          gradient: const LinearGradient(
+                            begin: Alignment(0.50, 1.00),
+                            end: Alignment(0.50, 0.00),
+                            colors: [Color(0xFFADE7F7), Color(0xFFF7F7FA)],
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(30),
+                          ),
+                        ),
+                        child: const Center(
+                          child: Text(
+                            'Muat Ulang',
+                            style: TextStyle(
+                              color: Colors.black,
+                              fontSize: 13,
+                              fontFamily: 'Jost',
+                              fontWeight: FontWeight.w400,
+                            ),
                           ),
                         ),
                       ),
                     ),
-                  ],
-                ),
-              ),
+                  ),
+              ],
             ),
           ),
         ],
       ),
     );
   }
-  
-  // Helper method for active filter chips
+
+  Widget _buildBody() {
+    if (_isLoading) {
+      return const Center(
+        child: CircularProgressIndicator(
+          color: Color(0xFF3A567A),
+        ),
+      );
+    }
+
+    if (_error.isNotEmpty) {
+      return Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              _error,
+              style: const TextStyle(
+                color: Colors.black,
+                fontSize: 13,
+                fontFamily: 'Jost',
+                fontWeight: FontWeight.w400,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 12),
+            ElevatedButton(
+              onPressed: _searchVideos,
+              child: const Text('Coba lagi'),
+            ),
+          ],
+        ),
+      );
+    }
+
+    if (_videos.isEmpty) {
+      return const Center(
+        child: Text(
+          'Tidak ada video yang cocok.',
+          style: TextStyle(
+            color: Colors.black,
+            fontSize: 13,
+            fontFamily: 'Jost',
+            fontWeight: FontWeight.w400,
+          ),
+        ),
+      );
+    }
+
+    return ListView.separated(
+      itemCount: _videos.length,
+      separatorBuilder: (_, __) => const SizedBox(height: 12),
+      itemBuilder: (context, index) {
+        final video = _videos[index];
+        return _buildVideoResultItem(video);
+      },
+    );
+  }
+
   Widget _buildActiveFilterChip(String text) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
       decoration: ShapeDecoration(
         color: const Color(0xFFF7F7FA),
         shape: RoundedRectangleBorder(
-          side: BorderSide(
+          side: const BorderSide(
             width: 1,
-            color: const Color(0xFF3A567A),
+            color: Color(0xFF3A567A),
           ),
           borderRadius: BorderRadius.circular(10),
         ),
       ),
       child: Row(
-        mainAxisSize: MainAxisSize.min,
         children: [
+          const Icon(
+            Icons.check,
+            size: 14,
+            color: Color(0xFF3A567A),
+          ),
+          const SizedBox(width: 4),
           Text(
             text,
-            style: TextStyle(
+            style: const TextStyle(
               color: Colors.black,
               fontSize: 11,
               fontFamily: 'Jost',
               fontWeight: FontWeight.w600,
             ),
           ),
-          const SizedBox(width: 4),
-          // Close button
-          GestureDetector(
-            onTap: () {
-              // Remove filter
-            },
-            child: Icon(
-              Icons.close,
-              size: 14,
-              color: Colors.black,
-            ),
-          ),
         ],
       ),
     );
   }
-  
-  // Helper method for filter buttons
-  Widget _buildFilterButton(String text) {
+
+  Widget _buildResultTag(String text) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-      decoration: ShapeDecoration(
-        color: const Color(0xFFF0F7FC),
-        shape: RoundedRectangleBorder(
-          side: BorderSide(
-            width: 1,
-            color: const Color(0x663A567A),
-          ),
-          borderRadius: BorderRadius.circular(30),
-        ),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF7F7FA),
+        borderRadius: BorderRadius.circular(10),
       ),
       child: Text(
         text,
-        style: TextStyle(
+        style: const TextStyle(
           color: Colors.black,
-          fontSize: 14,
+          fontSize: 10,
           fontFamily: 'Jost',
-          fontWeight: FontWeight.w600,
+          fontWeight: FontWeight.w300,
         ),
       ),
     );
   }
-  
-  // Helper method for video result items
-  Widget _buildVideoResultItem() {
+
+  Widget _buildVideoResultItem(Map<String, dynamic> video) {
+    final title = (video['title'] ?? '') as String;
+    final tagsField = video['tags'] ?? video['tag'] ?? '';
+    final tags = tagsField
+        .toString()
+        .split(RegExp(r'[,\s]+'))
+        .where((e) => e.isNotEmpty)
+        .toList();
+    final sentDateText = (video['sentDate'] ?? '').toString();
+
     return Container(
-      width: double.infinity,
-      height: 98,
-      padding: const EdgeInsets.all(12),
+      height: 180,
       decoration: ShapeDecoration(
-        gradient: LinearGradient(
-          begin: Alignment(0.98, -0.00),
-          end: Alignment(0.02, 1.00),
-          colors: [const Color(0xFFEFF7FC), const Color(0xFFF7F7FA)],
-        ),
+        color: Colors.white,
         shape: RoundedRectangleBorder(
-          side: BorderSide(
+          side: const BorderSide(
             width: 1,
-            color: const Color(0x333A567A),
+            color: Color(0xFF3A567A),
           ),
-          borderRadius: BorderRadius.circular(20),
+          borderRadius: BorderRadius.circular(15),
         ),
       ),
       child: Row(
         children: [
           // Thumbnail
           Container(
-            width: 140,
-            height: 80,
-            decoration: ShapeDecoration(
-              image: DecorationImage(
-                image: NetworkImage("https://placehold.co/140x80"),
-                fit: BoxFit.cover,
-              ),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(20),
-              ),
+            width: 130,
+            margin: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(15),
+              color: const Color(0xFFE0E0E0),
+              image: video['thumbnailPath'] != null &&
+                      (video['thumbnailPath'] as String).isNotEmpty
+                  ? DecorationImage(
+                      image: NetworkImage(video['thumbnailPath'] as String),
+                      fit: BoxFit.cover,
+                    )
+                  : null,
             ),
+            child: video['thumbnailPath'] == null ||
+                    (video['thumbnailPath'] as String).isEmpty
+                ? const Icon(Icons.play_circle_fill,
+                    size: 48, color: Color(0xFF3A567A))
+                : null,
           ),
-          const SizedBox(width: 11),
-          
-          // Video info
+
+          // Info
           Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                Text(
-                  'Video_Title',
-                  style: TextStyle(
-                    color: Colors.black,
-                    fontSize: 20,
-                    fontFamily: 'Jost',
-                    fontWeight: FontWeight.w400,
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(4, 8, 12, 8),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Title
+                  Text(
+                    title,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      color: Colors.black,
+                      fontSize: 13,
+                      fontFamily: 'Kodchasan',
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
-                ),
-                Text(
-                  'Uploader',
-                  style: TextStyle(
-                    color: Colors.black,
-                    fontSize: 14,
-                    fontFamily: 'Jost',
-                    fontWeight: FontWeight.w300,
+                  const SizedBox(height: 4),
+
+                  // Date
+                  Text(
+                    sentDateText,
+                    style: const TextStyle(
+                      color: Color(0x803A567A),
+                      fontSize: 10,
+                      fontFamily: 'Jost',
+                    ),
                   ),
-                ),
-                Text(
-                  'Date/Month/Year',
-                  style: TextStyle(
-                    color: Colors.black,
-                    fontSize: 10,
-                    fontFamily: 'Jost',
-                    fontWeight: FontWeight.w300,
-                  ),
-                ),
-              ],
+                  const SizedBox(height: 8),
+
+                  // tags
+                  if (tags.isNotEmpty)
+                    Wrap(
+                      spacing: 4,
+                      runSpacing: 4,
+                      children:
+                          tags.map((t) => _buildResultTag(t)).toList(),
+                    ),
+                ],
+              ),
             ),
           ),
         ],

@@ -20,14 +20,14 @@ class _SignupScreenState extends State<SignupScreen> {
         _passwordController.text.isEmpty) {
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(SnackBar(content: Text('Please fill all fields')));
+      ).showSnackBar(SnackBar(content: Text('Silakan Isi Semua Data Terlebih Dahulu.')));
       return;
     }
 
     if (_passwordController.text != _confirmPasswordController.text) {
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(SnackBar(content: Text('Passwords do not match')));
+      ).showSnackBar(SnackBar(content: Text('Password Tidak Sesuai.')));
       return;
     }
 
@@ -97,13 +97,19 @@ class _SignupScreenState extends State<SignupScreen> {
                 ),
                 SizedBox(height: 15),
                 Padding(
-                  padding: EdgeInsetsGeometry.all(24),
+                  padding: EdgeInsets.all(24),
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     mainAxisAlignment: MainAxisAlignment.center,
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      // Welcome text
+                      // LOGO
+                      Image.asset(
+                        'Asset/logo.png',
+                        width: 200,
+                        height: 200,
+                      ),
+                      const SizedBox(height: 25),
                       SizedBox(
                         width: 330,
                         child: Column(
@@ -121,20 +127,10 @@ class _SignupScreenState extends State<SignupScreen> {
                               ),
                             ),
                             const SizedBox(height: 12),
-                            Text(
-                              'Buat akun dan mulai memperbaiki',
-                              style: TextStyle(
-                                color: Colors.black,
-                                fontSize: 15,
-                                fontFamily: 'Kodchasan',
-                                fontWeight: FontWeight.w400,
-                              ),
-                            ),
                           ],
                         ),
                       ),
                       const SizedBox(height: 25),
-                      // Email field
                       SizedBox(
                         width: 350,
                         child: Column(
@@ -180,7 +176,6 @@ class _SignupScreenState extends State<SignupScreen> {
                         ),
                       ),
                       const SizedBox(height: 25),
-                      // Display Name field
                       SizedBox(
                         width: 350,
                         child: Column(
@@ -226,7 +221,6 @@ class _SignupScreenState extends State<SignupScreen> {
                         ),
                       ),
                       const SizedBox(height: 25),
-                      // Password field
                       SizedBox(
                         width: 350,
                         child: Column(
@@ -273,7 +267,6 @@ class _SignupScreenState extends State<SignupScreen> {
                         ),
                       ),
                       const SizedBox(height: 25),
-                      // Repeat Password field
                       SizedBox(
                         width: 350,
                         child: Column(
@@ -305,8 +298,7 @@ class _SignupScreenState extends State<SignupScreen> {
                                 ),
                               ),
                               child: TextField(
-                                controller:
-                                    _confirmPasswordController, // Add this
+                                controller: _confirmPasswordController, // Add this
                                 obscureText: true,
                                 decoration: InputDecoration(
                                   border: InputBorder.none,
@@ -321,7 +313,6 @@ class _SignupScreenState extends State<SignupScreen> {
                         ),
                       ),
                       const SizedBox(height: 25),
-                      // Signup button
                       Container(
                         width: 264,
                         height: 39,
@@ -355,7 +346,6 @@ class _SignupScreenState extends State<SignupScreen> {
                                 ),
                         ),
                       ),
-                      // Add some bottom space for keyboard
                       SizedBox(height: 40),
                     ],
                   ),

@@ -62,10 +62,20 @@ class _ScreenLoginState extends State<ScreenLogin> {
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 const SizedBox(height: 40),
-                // Logo / image placeholder
+                
+                // LOGO
+                Image.asset(
+                  'Asset/logo.png', 
+                  width: 200, 
+                  height: 200,
+                ),
+
+                const SizedBox(height: 20),
+
+                
                 Container(
-                  width: 350,
-                  height: 183,
+                  width: 120,
+                  height: 20,
                   decoration: const BoxDecoration(
                     image: DecorationImage(
                       image: AssetImage('Asset/logo.png'), // Fixed path
@@ -73,6 +83,7 @@ class _ScreenLoginState extends State<ScreenLogin> {
                     ),
                   ),
                 ),
+                
                 const SizedBox(height: 35),
                 // Email field
                 Padding(

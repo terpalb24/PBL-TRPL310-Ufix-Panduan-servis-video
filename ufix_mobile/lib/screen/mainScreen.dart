@@ -3,14 +3,14 @@ import 'homepage.dart';
 import 'search.dart';
 import 'bookmark.dart';
 
-class frontScreen extends StatefulWidget {
-  const frontScreen({super.key});
+class FrontScreen extends StatefulWidget {
+  const FrontScreen({super.key});
 
   @override
-  State<frontScreen> createState() => _frontScreenState();
+  State<FrontScreen> createState() => _FrontScreenState();
 }
 
-class _frontScreenState extends State<frontScreen> {
+class _FrontScreenState extends State<FrontScreen> {
   int _selectedIndex = 0;
 
   final List<Widget> _pages = [
@@ -28,6 +28,7 @@ class _frontScreenState extends State<frontScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      resizeToAvoidBottomInset: true,
       body: _pages[_selectedIndex],
       bottomNavigationBar: BottomNavigationBar(
         backgroundColor: Color(0xFFF7F7FA),

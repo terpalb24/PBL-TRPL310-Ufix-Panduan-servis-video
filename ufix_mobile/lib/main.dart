@@ -1,6 +1,7 @@
 // lib/main.dart
 import 'package:flutter/material.dart';
 import 'package:ufix_mobile/models/video_model.dart';
+import 'package:ufix_mobile/screen/search.dart';
 
 // Import all your screens
 import 'screen/welcome_unlogged.dart';
@@ -25,7 +26,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Electronics Learning App',
-      home: frontScreen(), // Fixed: frontScreen() -> FrontScreen()
+      home: CommentsScreen(), // Fixed: frontScreen() -> FrontScreen()
       routes: {
         // Authentication Flow
         '/unlogged': (context) => WelcomeUnlogged(),
@@ -34,7 +35,7 @@ class MyApp extends StatelessWidget {
         '/loggedin': (context) => WelcomeLoggedin(),
         
         // Main App Flow
-        '/front': (context) => frontScreen(), // Fixed: frontScreen -> FrontScreen
+        '/front': (context) => FrontScreen(), // Fixed: frontScreen -> FrontScreen
         '/searched_videos': (context) => SearchedVideos(),
         '/history': (context) => History(),
         '/settings': (context) => Settings(),

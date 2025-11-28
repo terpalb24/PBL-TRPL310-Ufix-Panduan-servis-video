@@ -77,10 +77,6 @@ class _ScreenLoginState extends State<ScreenLogin> {
                   width: 120,
                   height: 20,
                   decoration: const BoxDecoration(
-                    image: DecorationImage(
-                      image: AssetImage('Asset/logo.png'), // Fixed path
-                      fit: BoxFit.cover,
-                    ),
                   ),
                 ),
                 

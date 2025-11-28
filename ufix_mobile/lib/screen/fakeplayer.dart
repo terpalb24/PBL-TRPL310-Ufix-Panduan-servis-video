@@ -28,7 +28,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
       // Initialize MediaKit first! - NO AWAIT needed
       MediaKit.ensureInitialized();
       
-      final videoUrl = 'http://192.168.1.11:3000/api/video/watch/${widget.video.idVideo}';
+      final videoUrl = 'http://localhost:3000/api/video/watch/${widget.video.idVideo}';
       print('🎬 Loading video from: $videoUrl');
 
       _mediaPlayer = Player();

@@ -1,6 +1,7 @@
 // lib/screens/homepage.dart
 import 'package:flutter/material.dart';
 import 'package:ufix_mobile/services/api_service.dart';
+import 'package:ufix_mobile/services/auth_manager.dart';
 import 'package:ufix_mobile/models/video_model.dart';
 
 class Homepage extends StatefulWidget {
@@ -84,7 +85,7 @@ class _HomepageState extends State<Homepage> {
 
   Future<void> _loadUserData() async {
     setState(() {
-      _userName = 'User';
+      _userName = AuthManager.currentUser?.displayName ?? 'User';
     });
   }
 

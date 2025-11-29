@@ -4,6 +4,14 @@ const crypto = require("crypto");
 const jwt = require("jsonwebtoken");
 const { dbPromise } = require("../config/database");
 
+// helper: find primary key column for users
+async function findUsersPk() {
+  const [rows] = await dbPromise.execute(
+    `SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'users' AND COLUMN_KEY = 'PRI' LIMIT 1`
+  );
+  return rows.length ? rows[0].COLUMN_NAME : null;
+}
+
 // helper: hash password pakai SHA-256
 const hashPassword = (password) => {
   return crypto.createHash("sha256").update(password).digest("hex");
@@ -100,9 +108,17 @@ const login = async (req, res) => {
       });
     }
 
-    // generate JWT
+    // determine users primary key and extract its value
+    const usersPkName = await findUsersPk();
+    console.log('login: detected users PK =', usersPkName, 'user row keys =', Object.keys(user));
+    console.log('login: user row =', user);
+    console.log('login: user[usersPkName] =', usersPkName ? user[usersPkName] : undefined);
+    const userIdValue = usersPkName ? user[usersPkName] : user.id;
+    console.log('login: resolved userIdValue =', userIdValue);
+
+    // generate JWT (include a standard claim `userId`)
     const token = jwt.sign(
-      { userId: user.id, email: user.email },
+      { userId: userIdValue, email: user.email },
       process.env.JWT_SECRET || "default_secret",
       { expiresIn: "24h" }
     );
@@ -112,7 +128,7 @@ const login = async (req, res) => {
       message: "Login berhasil",
       token,
       user: {
-        id: user.id,
+        id: userIdValue,
         displayName: user.displayName,
         email: user.email,
       },

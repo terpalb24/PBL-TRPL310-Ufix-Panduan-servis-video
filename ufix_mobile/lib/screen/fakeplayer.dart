@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:media_kit/media_kit.dart';
 import 'package:media_kit_video/media_kit_video.dart' as media_kit;
 import 'package:ufix_mobile/models/video_model.dart';
+import 'package:ufix_mobile/screen/comments.dart';
 
 class VideoPlayerScreen extends StatefulWidget {
   final Video video;
@@ -132,8 +133,27 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
                     ],
                   ),
                 )
-              : _videoController != null 
-                  ? media_kit.Video(controller: _videoController!)
+              : _videoController != null
+                  ? Stack(
+                      children: [
+                        Positioned.fill(child: media_kit.Video(controller: _videoController!)),
+                        Positioned(
+                          right: 16,
+                          bottom: 24,
+                          child: FloatingActionButton(
+                            heroTag: 'comments_btn',
+                            backgroundColor: const Color(0XFFFF7F00),
+                            child: const Icon(Icons.comment),
+                            onPressed: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(builder: (_) => CommentsScreen(videoId: widget.video.idVideo)),
+                              );
+                            },
+                          ),
+                        ),
+                      ],
+                    )
                   : const Center(child: Text('Video controller not available', style: TextStyle(color: Colors.white))),
     );
   }

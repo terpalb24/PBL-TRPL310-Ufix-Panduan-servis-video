@@ -4,19 +4,6 @@ const crypto = require("crypto");
 const jwt = require("jsonwebtoken");
 const { dbPromise } = require("../config/database");
 
-// helper: find primary key column for users
-async function findUsersPk() {
-  const [rows] = await dbPromise.execute(
-    `SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'users' AND COLUMN_KEY = 'PRI' LIMIT 1`
-  );
-  return rows.length ? rows[0].COLUMN_NAME : null;
-}
-
-// helper: hash password pakai SHA-256
-const hashPassword = (password) => {
-  return crypto.createHash("sha256").update(password).digest("hex");
-};
-
 // SIGNUP
 const signUp = async (req, res) => {
   try {
@@ -41,16 +28,13 @@ const signUp = async (req, res) => {
       });
     }
 
-    // hash password
-    const hashedPassword = hashPassword(password);
-
     // insert user baru
     const insertQuery =
       "INSERT INTO users (email, displayName, password) VALUES (?, ?, ?)";
     const [result] = await dbPromise.query(insertQuery, [
       email,
       displayName,
-      hashedPassword,
+      password,
     ]);
 
     res.status(201).json({
@@ -84,55 +68,35 @@ const login = async (req, res) => {
       });
     }
 
-    // ambil user berdasarkan email
-    const [users] = await dbPromise.query(
-      "SELECT * FROM users WHERE email = ?",
-      [email]
-    );
+    const LoginQuery = 'SELECT idPengguna, email, PASSWORD from users where email = ? AND PASSWORD = SHA2(?, 256)';
+    const [LoginData] = await dbPromise.execute(LoginQuery, [email, password]);
 
-    if (users.length === 0) {
+    if (LoginData.length > 0) {
+      const user = LoginData[0];
+
+      // generate JWT (include a standard claim `userId`)
+      const token = jwt.sign(
+        { userId: user.idPengguna, email: user.email },
+        process.env.JWT_SECRET || "default_secret",
+        { expiresIn: "24h" }
+      );
+
+      return res.status(200).json({
+        success: true,
+        message: "Login berhasil",
+        token,
+        user: {
+          id: user.idPengguna,
+          email: user.email,
+        },
+      });
+    } else {
       return res.status(401).json({
         success: false,
         message: "Email atau password salah",
       });
     }
 
-    const user = users[0];
-
-    // hash password input dan bandingkan
-    const hashedInput = hashPassword(password);
-    if (hashedInput !== user.password) {
-      return res.status(401).json({
-        success: false,
-        message: "Email atau password salah",
-      });
-    }
-
-    // determine users primary key and extract its value
-    const usersPkName = await findUsersPk();
-    console.log('login: detected users PK =', usersPkName, 'user row keys =', Object.keys(user));
-    console.log('login: user row =', user);
-    console.log('login: user[usersPkName] =', usersPkName ? user[usersPkName] : undefined);
-    const userIdValue = usersPkName ? user[usersPkName] : user.id;
-    console.log('login: resolved userIdValue =', userIdValue);
-
-    // generate JWT (include a standard claim `userId`)
-    const token = jwt.sign(
-      { userId: userIdValue, email: user.email },
-      process.env.JWT_SECRET || "default_secret",
-      { expiresIn: "24h" }
-    );
-
-    res.status(200).json({
-      success: true,
-      message: "Login berhasil",
-      token,
-      user: {
-        id: userIdValue,
-        displayName: user.displayName,
-        email: user.email,
-      },
-    });
   } catch (error) {
     console.error("Login error:", error);
     res.status(500).json({

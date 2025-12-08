@@ -91,7 +91,7 @@ class ApiService {
         queryParameters: {'tag': tag},
       );
 
-      final response = await http.get(
+      final response = await http.post(
         uri,
         headers: getHeaders(null),
       );

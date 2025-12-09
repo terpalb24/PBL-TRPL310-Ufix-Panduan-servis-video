@@ -77,4 +77,25 @@ class ApiService {
       return {'success': false, 'message': 'Network error: $e'};
     }
   }
+
+  // In lib/services/api_service.dart
+static Future<Map<String, dynamic>> getVideoUrl(int videoId) async {
+  try {
+    final response = await http.get(
+      Uri.parse('$baseUrl/video/url/$videoId'), // Adjust endpoint path as needed
+      headers: getHeaders(null),
+    );
+    
+    if (response.statusCode == 200) {
+      return json.decode(response.body);
+    } else {
+      return {
+        'success': false, 
+        'message': 'Server error: ${response.statusCode}'
+      };
+    }
+  } catch (e) {
+    return {'success': false, 'message': 'Network error: $e'};
+  }
+}
 }

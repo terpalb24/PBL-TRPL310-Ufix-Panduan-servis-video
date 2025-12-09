@@ -67,6 +67,8 @@ const signUp = async (req, res) => {
 const login = async (req, res) => {
   try {
     const { email, password } = req.body;
+    console.log("REQ LOGIN:", req.body);
+
 
     // validasi input
     if (!email || !password) {
@@ -81,8 +83,10 @@ const login = async (req, res) => {
       "SELECT * FROM users WHERE email = ?",
       [email]
     );
+    console.log("USER FROM DB:", users);
 
     if (users.length === 0) {
+      console.log("⚠️ USER TIDAK DITEMUKAN");
       return res.status(401).json({
         success: false,
         message: "Email atau password salah",

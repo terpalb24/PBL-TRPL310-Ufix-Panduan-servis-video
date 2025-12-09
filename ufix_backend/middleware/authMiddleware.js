@@ -21,10 +21,10 @@ const authenticateToken = (req, res, next) => {
 
     req.userId = decoded.userId;
     req.userEmail = decoded.email;
+    req.userRole = decoded.role;
+
     next();
   });
 };
 
-module.exports = {
-  authenticateToken
-};
+module.exports = {authenticateToken};

@@ -7,7 +7,7 @@ const { dbPromise } = require("../config/database");
 // SIGNUP
 const signUp = async (req, res) => {
   try {
-    const { email, displayName, password } = req.body;
+    const { email, displayName, PASSWORD, role} = req.body;
 
     // validasi input
     if (!email || !displayName || !password) {
@@ -18,8 +18,9 @@ const signUp = async (req, res) => {
     }
 
     // cek apakah user sudah ada
-    const checkUserQuery = "SELECT * FROM users WHERE email = ?";
-    const [users] = await dbPromise.query(checkUserQuery, [email]);
+    const [users] = await dbPromise.query("SELECT * FROM users WHERE email = ?", 
+      [email]
+    );
 
     if (users.length > 0) {
       return res.status(400).json({
@@ -28,13 +29,20 @@ const signUp = async (req, res) => {
       });
     }
 
+    const hashedPassword = crypto
+      .createHash("sha256")
+      .update(password)
+      .digest("hex");
+
     // insert user baru
     const insertQuery =
-      "INSERT INTO users (email, displayName, password) VALUES (?, ?, ?)";
+      "INSERT INTO users (email, displayName, PASSWORD) VALUES (?, ?, ?)";
+
     const [result] = await dbPromise.query(insertQuery, [
       email,
       displayName,
-      password,
+      hashedPassword,
+      "appuser", //default
     ]);
 
     res.status(201).json({
@@ -44,6 +52,7 @@ const signUp = async (req, res) => {
         id: result.insertId,
         displayName,
         email,
+        role: "appuser",
       },
     });
   } catch (error) {
@@ -59,8 +68,6 @@ const signUp = async (req, res) => {
 const login = async (req, res) => {
   try {
     const { email, password } = req.body;
-    console.log("REQ LOGIN:", req.body);
-
 
     // validasi input
     if (!email || !password) {
@@ -70,7 +77,12 @@ const login = async (req, res) => {
       });
     }
 
-    const LoginQuery = 'SELECT idPengguna, email, PASSWORD from users where email = ? AND PASSWORD = SHA2(?, 256)';
+    const hashed = crypto
+      .createHash("sha256")
+      .update(password)
+      .digest("hex");
+
+    const LoginQuery = 'SELECT idPengguna, email, displayName, role, PASSWORD from users where email = ? AND PASSWORD = SHA2(?, 256)';
     const [LoginData] = await dbPromise.execute(LoginQuery, [email, password]);
 
     if (LoginData.length > 0) {
@@ -78,7 +90,11 @@ const login = async (req, res) => {
 
       // generate JWT (include a standard claim `userId`)
       const token = jwt.sign(
-        { userId: user.idPengguna, email: user.email },
+        { 
+          userId: user.idPengguna, 
+          email: user.email,
+          role: user.role,
+        },
         process.env.JWT_SECRET || "default_secret",
         { expiresIn: "24h" }
       );
@@ -115,7 +131,7 @@ const getProfile = async (req, res) => {
 
     // ambil data user
     const [results] = await dbPromise.query(
-      "SELECT id, displayName, email, created_at FROM users WHERE id = ?",
+      "SELECT idPengguna, displayName, email, role FROM users WHERE idPengguna = ?",
       [userId]
     );
 

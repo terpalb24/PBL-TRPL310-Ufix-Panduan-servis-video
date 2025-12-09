@@ -1,9 +1,39 @@
-// lib/screens/search.dart
+// lib/screen/search.dart
 import 'package:flutter/material.dart';
 
-class Search extends StatelessWidget {
+class Search extends StatefulWidget {
   const Search({super.key});
-  
+
+  @override
+  State<Search> createState() => _SearchState();
+}
+
+class _SearchState extends State<Search> {
+  final TextEditingController _searchController = TextEditingController();
+
+  void _openResult(String value) {
+    final query = value.trim();
+
+    if (query.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Masukkan minimal satu kata kunci / tag')),
+      );
+      return;
+    }
+
+    Navigator.pushNamed(
+      context,
+      '/searched_videos',
+      arguments: {'query': query},
+    );
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -15,94 +45,125 @@ class Search extends StatelessWidget {
             height: MediaQuery.of(context).size.height,
             color: Colors.white,
           ),
-          
-          // Search bar
-          Positioned(
-            left: 25,
-            top: 10,
-            child: Container(
-              width: MediaQuery.of(context).size.width - 50,
-              height: 50,
-              decoration: ShapeDecoration(
-                color: const Color(0xFFEAEAEA),
-                shape: RoundedRectangleBorder(
-                  side: BorderSide(
-                    width: 1,
-                    color: const Color(0xFFD9D9D9),
-                  ),
-                  borderRadius: BorderRadius.circular(15),
-                ),
-              ),
-              child: Row(
+
+          // Konten
+          SafeArea(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const SizedBox(width: 16),
-                  Icon(Icons.search, color: Colors.grey[600]),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: TextField(
-                      decoration: InputDecoration(
-                        hintText: 'Search videos...',
-                        hintStyle: TextStyle(
-                          color: Colors.grey[600],
-                          fontSize: 16,
-                        ),
-                        border: InputBorder.none,
-                      ),
+                  const SizedBox(height: 8),
+                  const Text(
+                    'Cari Tutorial',
+                    style: TextStyle(
+                      color: Colors.black,
+                      fontSize: 20,
+                      fontFamily: 'Kodchasan',
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
-                ],
-              ),
-            ),
-          ),
-          
-          // Main content
-          Positioned(
-            left: 0,
-            top: 70,
-            child: SizedBox(
-              width: MediaQuery.of(context).size.width,
-              height: MediaQuery.of(context).size.height - 145,
-              child: SingleChildScrollView(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Recommended section
-                    _buildSection('Disarankan', _buildRecommendedTags()),
-                    
-                    // All Tags section
-                    _buildSection('Semua Tag', _buildAllTags()),
-                    
-                    // Load more button
-                    Center(
-                      child: Container(
-                        width: 100,
-                        height: 30,
-                        margin: const EdgeInsets.symmetric(vertical: 20),
-                        decoration: ShapeDecoration(
-                          gradient: LinearGradient(
-                            begin: Alignment(0.50, 1.00),
-                            end: Alignment(0.50, 0.00),
-                            colors: [const Color(0xFFADE7F7), const Color(0xFFF7F7FA)],
-                          ),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(30),
-                          ),
-                        ),
-                        child: Center(
-                          child: Text(
-                            'Lebih Banyak',
-                            style: TextStyle(
-                              color: Colors.black,
-                              fontSize: 13,
-                              fontFamily: 'Jost',
-                              fontWeight: FontWeight.w400,
+                  const SizedBox(height: 12),
+                  const Text(
+                    'Masukkan nama alat / topik yang ingin kamu perbaiki.',
+                    style: TextStyle(
+                      color: Color(0xFF3A567A),
+                      fontSize: 12,
+                      fontFamily: 'Jost',
+                      fontWeight: FontWeight.w400,
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+
+                  // Search box
+                  _buildSection(
+                    'Search',
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Container(
+                            height: 40,
+                            padding: const EdgeInsets.symmetric(horizontal: 12),
+                            decoration: ShapeDecoration(
+                              color: const Color(0xFFF0F7FC),
+                              shape: RoundedRectangleBorder(
+                                side: const BorderSide(
+                                  width: 1,
+                                  color: Color(0x193A567A),
+                                ),
+                                borderRadius: BorderRadius.circular(15),
+                              ),
+                            ),
+                            child: Center(
+                              child: TextField(
+                                controller: _searchController,
+                                onSubmitted: _openResult,
+                                style: const TextStyle(
+                                  fontFamily: 'Jost',
+                                  fontSize: 12,
+                                  color: Colors.black,
+                                ),
+                                decoration: const InputDecoration(
+                                  border: InputBorder.none,
+                                  hintText: 'Contoh: TV tidak menyala',
+                                  hintStyle: TextStyle(
+                                    color: Color(0x803A567A),
+                                    fontSize: 12,
+                                    fontFamily: 'Jost',
+                                  ),
+                                ),
+                              ),
                             ),
                           ),
                         ),
-                      ),
+                        const SizedBox(width: 8),
+                        SizedBox(
+                          height: 40,
+                          width: 40,
+                          child: ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFF3A567A),
+                              padding: EdgeInsets.zero,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(15),
+                              ),
+                            ),
+                            onPressed: () => _openResult(_searchController.text),
+                            child: const Icon(
+                              Icons.search,
+                              size: 20,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
-                  ],
-                ),
+                  ),
+
+                  const SizedBox(height: 16),
+
+                  // Recommended tags -> barang elektronik
+                  _buildSection(
+                    'Rekomendasi Tag',
+                    _buildRecommendedTags(),
+                  ),
+
+                  const SizedBox(height: 16),
+
+                  // Kategori populer -> elektronik juga
+                  _buildSection(
+                    'Kategori Populer',
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: [
+                        _buildTagButton('Gadget'),
+                        _buildTagButton('Elektronik Rumah'),
+                        _buildTagButton('Komputer & Laptop'),
+                      ],
+                    ),
+                  ),
+                ],
               ),
             ),
           ),
@@ -110,8 +171,8 @@ class Search extends StatelessWidget {
       ),
     );
   }
-  
-  // Helper method to build sections
+
+
   Widget _buildSection(String title, Widget content) {
     return Container(
       width: double.infinity,
@@ -128,7 +189,7 @@ class Search extends StatelessWidget {
         children: [
           Text(
             title,
-            style: TextStyle(
+            style: const TextStyle(
               color: Colors.black,
               fontSize: 11,
               fontFamily: 'Kodchasan',
@@ -141,76 +202,43 @@ class Search extends StatelessWidget {
       ),
     );
   }
-  
-  // Recommended tags
+
+  // ==== Rekomendasi Tag: sekarang elektronik ====
   Widget _buildRecommendedTags() {
-    final recommendedTags = [
-      'Electronics', 'Repair', 'Tutorial', 'DIY', 'Circuit',
-      'Soldering', 'Arduino', 'Raspberry Pi', 'Programming'
+    final tags = [
+      'TV',
+      'Laptop',
+      'HP',
+      'Kulkas',
+      'Mesin cuci',
+      'AC',
     ];
-    
+
     return Wrap(
       spacing: 8,
       runSpacing: 8,
-      children: recommendedTags.map((tag) => _buildTag(tag)).toList(),
+      children: tags
+          .map(
+            (t) => GestureDetector(
+              onTap: () => _openResult(t),
+              child: _buildTagButton(t),
+            ),
+          )
+          .toList(),
     );
   }
-  
-  // All tags (organized in categories)
-  Widget _buildAllTags() {
-    final tagCategories = {
-      'Basic Electronics': ['Resistor', 'Capacitor', 'Transistor', 'Diode', 'LED'],
-      'Tools': ['Multimeter', 'Oscilloscope', 'Soldering Iron', 'Wire Cutter'],
-      'Programming': ['C++', 'Python', 'JavaScript', 'Arduino IDE'],
-      'Projects': ['Robot', 'Drone', 'Smart Home', 'IoT', '3D Printing'],
-      'Advanced': ['Microcontroller', 'PCB Design', 'Signal Processing']
-    };
-    
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: tagCategories.entries.map((entry) {
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              entry.key,
-              style: TextStyle(
-                color: const Color(0xFF3A567A),
-                fontSize: 14,
-                fontFamily: 'Kodchasan',
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: entry.value.map((tag) => _buildTag(tag)).toList(),
-            ),
-            const SizedBox(height: 16),
-          ],
-        );
-      }).toList(),
-    );
-  }
-  
-  // Individual tag widget
-  Widget _buildTag(String text) {
+
+  // Tag pill
+  Widget _buildTagButton(String text) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-      decoration: ShapeDecoration(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
+      decoration: BoxDecoration(
         color: const Color(0xFFF7F7FA),
-        shape: RoundedRectangleBorder(
-          side: BorderSide(
-            width: 1,
-            color: const Color(0xFF3A567A),
-          ),
-          borderRadius: BorderRadius.circular(10),
-        ),
+        borderRadius: BorderRadius.circular(10),
       ),
       child: Text(
         text,
-        style: TextStyle(
+        style: const TextStyle(
           color: Colors.black,
           fontSize: 11,
           fontFamily: 'Jost',

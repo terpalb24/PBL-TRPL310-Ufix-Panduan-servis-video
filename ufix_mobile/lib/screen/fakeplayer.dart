@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:media_kit/media_kit.dart';
 import 'package:media_kit_video/media_kit_video.dart' as media_kit;
 import 'package:ufix_mobile/models/video_model.dart';
+import 'package:ufix_mobile/screen/comments.dart';
+import 'package:ufix_mobile/screen/bookmark.dart' show BookmarkApi;
 
 class VideoPlayerScreen extends StatefulWidget {
   final Video video;
@@ -17,15 +19,71 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
   bool _isLoading = true;
   bool _hasError = false;
 
+  // state bookmark
+  bool _isBookmarked = false;
+  bool _bookmarkBusy = false;
+
   @override
   void initState() {
     super.initState();
     _initializeVideo();
+    _initBookmarkState();
+  }
+
+  Future<void> _initBookmarkState() async {
+    try {
+      final marked = await BookmarkApi.isBookmarked(widget.video.idVideo);
+      if (!mounted) return;
+      setState(() {
+        _isBookmarked = marked;
+      });
+    } catch (e) {
+      debugPrint('Error cek bookmark: $e');
+    }
+  }
+
+  Future<void> _toggleBookmark() async {
+    if (_bookmarkBusy) return;
+
+    setState(() {
+      _bookmarkBusy = true;
+    });
+
+    try {
+      if (_isBookmarked) {
+        await BookmarkApi.removeBookmark(widget.video.idVideo);
+        if (mounted) {
+          setState(() => _isBookmarked = false);
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Bookmark dihapus')),
+          );
+        }
+      } else {
+        await BookmarkApi.addBookmark(widget.video.idVideo);
+        if (mounted) {
+          setState(() => _isBookmarked = true);
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Ditambahkan ke bookmark')),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Gagal mengubah bookmark: $e')),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _bookmarkBusy = false;
+        });
+      }
+    }
   }
 
   Future<void> _initializeVideo() async {
     try {
-      // Initialize MediaKit first! - NO AWAIT needed
       MediaKit.ensureInitialized();
       
       final videoUrl = 'http://10.0.2.2:3000/api/video/watch/${widget.video.idVideo}';
@@ -36,44 +94,36 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
 
       await _mediaPlayer!.open(Media(videoUrl));
 
-      // Listen for when video starts playing
       _mediaPlayer!.stream.buffering.listen((isBuffering) {
-        print('📊 Buffering: $isBuffering');
         if (!isBuffering && mounted && _isLoading) {
           setState(() => _isLoading = false);
         }
       });
 
-      // Listen for when video is actually playing
+
       _mediaPlayer!.stream.playing.listen((isPlaying) {
-        print('▶️ Playing: $isPlaying');
         if (isPlaying && mounted && _isLoading) {
           setState(() => _isLoading = false);
         }
       });
 
-      // Check current state after a short delay
       Future.delayed(const Duration(seconds: 3), () {
         if (mounted && _isLoading) {
           final state = _mediaPlayer!.state;
-          print('📺 Player state - playing: ${state.playing}, buffering: ${state.buffering}');
           if (state.playing && !state.buffering) {
             setState(() => _isLoading = false);
           }
         }
       });
 
-      // Timeout
       Future.delayed(const Duration(seconds: 15), () {
         if (_isLoading && mounted) {
-          print('⏰ Video loading timeout');
           setState(() {
             _isLoading = false;
             _hasError = true;
           });
         }
       });
-
     } catch (e) {
       print('💥 Video initialization error: $e');
       if (mounted) {
@@ -103,6 +153,16 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
           icon: const Icon(Icons.arrow_back),
           onPressed: () => Navigator.pop(context),
         ),
+        // button bookmark di kanan appbar
+        actions: [
+          IconButton(
+            onPressed: _bookmarkBusy ? null : _toggleBookmark,
+            icon: Icon(
+              _isBookmarked ? Icons.bookmark : Icons.bookmark_border,
+              color: Colors.white,
+            ),
+          ),
+        ],
       ),
       body: _isLoading
           ? const Center(
@@ -111,7 +171,10 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
                 children: [
                   CircularProgressIndicator(color: Color(0XFFFF7F00)),
                   SizedBox(height: 16),
-                  Text('Loading video...', style: TextStyle(color: Colors.white)),
+                  Text(
+                    'Loading video...',
+                    style: TextStyle(color: Colors.white),
+                  ),
                 ],
               ),
             )
@@ -120,21 +183,58 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const Icon(Icons.error, color: Colors.white, size: 50),
+                      const Icon(Icons.error,
+                          color: Colors.white, size: 50),
                       const SizedBox(height: 16),
-                      const Text('Video failed to load', style: TextStyle(color: Colors.white)),
+                      const Text(
+                        'Video failed to load',
+                        style: TextStyle(color: Colors.white),
+                      ),
                       const SizedBox(height: 16),
                       ElevatedButton(
                         onPressed: _initializeVideo,
-                        style: ElevatedButton.styleFrom(backgroundColor: Color(0XFFFF7F00)),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Color(0XFFFF7F00),
+                        ),
                         child: const Text('Retry'),
                       ),
                     ],
                   ),
                 )
-              : _videoController != null 
-                  ? media_kit.Video(controller: _videoController!)
-                  : const Center(child: Text('Video controller not available', style: TextStyle(color: Colors.white))),
+              : _videoController != null
+                  ? Stack(
+                      children: [
+                        Positioned.fill(
+                          child: media_kit.Video(
+                            controller: _videoController!,
+                          ),
+                        ),
+                        Positioned(
+                          right: 16,
+                          bottom: 24,
+                          child: FloatingActionButton(
+                            heroTag: 'comments_btn',
+                            backgroundColor: const Color(0XFFFF7F00),
+                            child: const Icon(Icons.comment),
+                            onPressed: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => CommentsScreen(
+                                      videoId: widget.video.idVideo),
+                                ),
+                              );
+                            },
+                          ),
+                        ),
+                      ],
+                    )
+                  : const Center(
+                      child: Text(
+                        'Video controller not available',
+                        style: TextStyle(color: Colors.white),
+                      ),
+                    ),
     );
   }
 }

@@ -6,6 +6,7 @@ const authRoutes = require('./routes/authRoutes');
 const searchRoutes = require('./routes/searchRoutes');
 const videoRoutes = require('./routes/videoRoutes');
 const bookmarkRoutes = require('./routes/bookmarkRoutes');
+const commentsRoutes = require('./routes/commentsRoutes');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -24,6 +25,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/search', searchRoutes);
 app.use('/api/video', videoRoutes);
 app.use('/api/bookmark', bookmarkRoutes);
+app.use('/api/comments', commentsRoutes);
 
 // Test route
 app.get('/', (req, res) => {

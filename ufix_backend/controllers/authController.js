@@ -4,11 +4,6 @@ const crypto = require("crypto");
 const jwt = require("jsonwebtoken");
 const { dbPromise } = require("../config/database");
 
-// helper: hash password pakai SHA-256
-const hashPassword = (password) => {
-  return crypto.createHash("sha256").update(password).digest("hex");
-};
-
 // SIGNUP
 const signUp = async (req, res) => {
   try {
@@ -33,16 +28,13 @@ const signUp = async (req, res) => {
       });
     }
 
-    // hash password
-    const hashedPassword = hashPassword(password);
-
     // insert user baru
     const insertQuery =
       "INSERT INTO users (email, displayName, password) VALUES (?, ?, ?)";
     const [result] = await dbPromise.query(insertQuery, [
       email,
       displayName,
-      hashedPassword,
+      password,
     ]);
 
     res.status(201).json({
@@ -78,49 +70,35 @@ const login = async (req, res) => {
       });
     }
 
-    // ambil user berdasarkan email
-    const [users] = await dbPromise.query(
-      "SELECT * FROM users WHERE email = ?",
-      [email]
-    );
-    console.log("USER FROM DB:", users);
+    const LoginQuery = 'SELECT idPengguna, email, PASSWORD from users where email = ? AND PASSWORD = SHA2(?, 256)';
+    const [LoginData] = await dbPromise.execute(LoginQuery, [email, password]);
 
-    if (users.length === 0) {
-      console.log("⚠️ USER TIDAK DITEMUKAN");
+    if (LoginData.length > 0) {
+      const user = LoginData[0];
+
+      // generate JWT (include a standard claim `userId`)
+      const token = jwt.sign(
+        { userId: user.idPengguna, email: user.email },
+        process.env.JWT_SECRET || "default_secret",
+        { expiresIn: "24h" }
+      );
+
+      return res.status(200).json({
+        success: true,
+        message: "Login berhasil",
+        token,
+        user: {
+          id: user.idPengguna,
+          email: user.email,
+        },
+      });
+    } else {
       return res.status(401).json({
         success: false,
         message: "Email atau password salah",
       });
     }
 
-    const user = users[0];
-
-    // hash password input dan bandingkan
-    const hashedInput = hashPassword(password);
-    if (hashedInput !== user.password) {
-      return res.status(401).json({
-        success: false,
-        message: "Email atau password salah",
-      });
-    }
-
-    // generate JWT
-    const token = jwt.sign(
-      { userId: user.id, email: user.email },
-      process.env.JWT_SECRET || "default_secret",
-      { expiresIn: "24h" }
-    );
-
-    res.status(200).json({
-      success: true,
-      message: "Login berhasil",
-      token,
-      user: {
-        id: user.id,
-        displayName: user.displayName,
-        email: user.email,
-      },
-    });
   } catch (error) {
     console.error("Login error:", error);
     res.status(500).json({

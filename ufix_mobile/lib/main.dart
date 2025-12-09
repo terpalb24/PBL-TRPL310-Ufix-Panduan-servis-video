@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:ufix_mobile/screen/homepage.dart';
 import 'package:ufix_mobile/screen/search.dart';
 import 'package:ufix_mobile/models/video_model.dart';
+import 'package:ufix_mobile/screen/searched.dart';
 
 
 // Import all your screens
@@ -13,7 +14,6 @@ import 'screen/signup.dart';
 import 'screen/mainScreen.dart';
 import 'screen/history.dart';
 import 'screen/settings.dart';
-import 'screen/search.dart';
 import 'screen/fakeplayer.dart';
 import 'screen/comments.dart';
 
@@ -37,8 +37,8 @@ class MyApp extends StatelessWidget {
         '/loggedin': (context) => WelcomeLoggedin(),
         
         // Main App Flow
-        '/front': (context) => frontScreen(),
-        '/search': (context) => Search(),
+        '/front': (context) => FrontScreen(), // Fixed: frontScreen -> FrontScreen
+        '/searched_videos': (context) => SearchedVideos(),
         '/history': (context) => History(),
         '/settings': (context) => Settings(),
         '/homepage':(context) => Homepage(),

@@ -7,10 +7,11 @@ class WelcomeUnlogged extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      resizeToAvoidBottomInset: true,
       body: SafeArea(
         child: SingleChildScrollView(
           child: Container(
-            width: MediaQuery.of(context).size.width,
+            width: MediaQuery.of(context).size.width, // responsive width and height
             height: MediaQuery.of(context).size.height,
             color: const Color(0xFFF7F7F7),
             child: Column(

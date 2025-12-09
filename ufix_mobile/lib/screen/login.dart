@@ -1,6 +1,8 @@
 // lib/screens/screen_login.dart
 import 'package:flutter/material.dart';
 import 'package:ufix_mobile/services/api_service.dart';
+import 'package:ufix_mobile/services/auth_manager.dart';
+import 'package:ufix_mobile/models/user_model.dart';
 
 class ScreenLogin extends StatefulWidget {
   const ScreenLogin({super.key});
@@ -38,9 +40,38 @@ class _ScreenLoginState extends State<ScreenLogin> {
     if (!mounted) return;
 
     if (result['success'] == true) {
+      // DEBUG: show full login result
+      try {
+        print('DEBUG: login result -> $result');
+        print('DEBUG: login user payload -> ${result['user']}');
+      } catch (_) {}
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Berhasil Masuk!')),
       );
+      // store user in memory for session
+      try {
+        final userData = result['user'] as Map<String, dynamic>?;
+        final token = result['token'] as String?;
+        if (userData != null) {
+          final user = User(
+            id: userData['id'],
+            email: userData['email'] ?? '',
+            displayName: userData['displayName'] ?? '',
+            token: token,
+          );
+          AuthManager.setUser(user);
+        }
+      } catch (e) {
+        // ignore set user errors
+      }
+
+      // DEBUG: log currently set user
+      try {
+        print("====================================================================================");
+        print('DEBUG: AuthManager.currentUser -> id=${AuthManager.currentUser?.id} displayName=${AuthManager.currentUser?.displayName} token=${AuthManager.currentUser?.token}');
+        print("====================================================================================");
+      } catch (_) {}
+
       Navigator.pushReplacementNamed(context, '/front'); // Changed to /main
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -72,6 +103,15 @@ class _ScreenLoginState extends State<ScreenLogin> {
 
                 const SizedBox(height: 20),
                 
+
+                Container(
+                  width: 120,
+                  height: 20,
+                  decoration: const BoxDecoration(
+                  ),
+                ),
+                
+                const SizedBox(height: 35),
                 // Email field
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 30),

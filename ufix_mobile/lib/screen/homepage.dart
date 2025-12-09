@@ -1,6 +1,7 @@
 // lib/screens/homepage.dart
 import 'package:flutter/material.dart';
 import 'package:ufix_mobile/services/api_service.dart';
+import 'package:ufix_mobile/services/auth_manager.dart';
 import 'package:ufix_mobile/models/video_model.dart';
 
 class Homepage extends StatefulWidget {
@@ -84,7 +85,7 @@ class _HomepageState extends State<Homepage> {
 
   Future<void> _loadUserData() async {
     setState(() {
-      _userName = 'User';
+      _userName = AuthManager.currentUser?.displayName ?? 'User';
     });
   }
 
@@ -518,10 +519,10 @@ String _constructImageUrl(String thumbnailPath) {
   if (thumbnailPath.startsWith('http')) {
     return thumbnailPath;
   } else if (thumbnailPath.isNotEmpty) {
-    return 'http://10.0.2.2:3000$thumbnailPath';
+    return 'http://localhost:3000$thumbnailPath';
   } else {
     // Return a placeholder image URL or use asset
-    return 'http://10.0.2.2:3000/placeholder.jpg'; // Fallback
+    return 'http://localhost:3000/placeholder.jpg'; // Fallback
   }
 }
 
@@ -529,7 +530,7 @@ String _constructImageUrl(String thumbnailPath) {
     if (thumbnailPath.startsWith('http')) {
       return NetworkImage(thumbnailPath);
     } else if (thumbnailPath.isNotEmpty) {
-      return NetworkImage('http://10.0.2.2:3000$thumbnailPath');
+      return NetworkImage('http://localhost:3000$thumbnailPath');
     } else {
       return AssetImage('Asset/Thumbnail-Fake.png');
     }

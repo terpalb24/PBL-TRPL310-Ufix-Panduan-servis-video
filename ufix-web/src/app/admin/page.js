@@ -11,7 +11,7 @@ export default function LoginAdminPage() {
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
 
-  const API_URL = "http://localhost:3000/api/auth/login"; 
+  const API_URL = "http://localhost:3001/api/auth/login"; 
   //UBAH KE PORT BACKEND KAMU
 
   const handleLogin = async (e) => {

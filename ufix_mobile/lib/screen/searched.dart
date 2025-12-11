@@ -1,6 +1,7 @@
 // lib/screens/searched.dart
 import 'package:flutter/material.dart';
 import 'package:ufix_mobile/services/api_service.dart';
+import 'package:ufix_mobile/models/video_model.dart';
 
 class SearchedVideos extends StatefulWidget {
   const SearchedVideos({super.key});
@@ -14,7 +15,7 @@ class _SearchedVideosState extends State<SearchedVideos> {
   bool _isLoading = true;
   String _error = '';
   String _query = '';
-  List<Map<String, dynamic>> _videos = [];
+  List<Video> _videos = [];
 
   @override
   void didChangeDependencies() {
@@ -27,6 +28,10 @@ class _SearchedVideosState extends State<SearchedVideos> {
       _searchVideos();
       _initialized = true;
     }
+  }
+
+  void _navigateToVideoPlayer(Video video) {
+    Navigator.pushNamed(context, '/player', arguments: video);
   }
 
   Future<void> _searchVideos() async {
@@ -50,9 +55,13 @@ class _SearchedVideosState extends State<SearchedVideos> {
     setState(() {
       _isLoading = false;
       if (result['success'] == true && result['videos'] is List) {
-        _videos = List<Map<String, dynamic>>.from(result['videos'] as List);
+        final videosList = result['videos'] as List;
+        _videos = videosList.map((videoData) {
+          return Video.fromJson(videoData);
+        }).toList();
       } else {
-        _error = result['message']?.toString() ?? 'Gagal memuat hasil pencarian';
+        _error =
+            result['message']?.toString() ?? 'Gagal memuat hasil pencarian';
       }
     });
   }
@@ -74,7 +83,10 @@ class _SearchedVideosState extends State<SearchedVideos> {
               children: [
                 // TOP BAR
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 8,
+                  ),
                   child: Row(
                     children: [
                       IconButton(
@@ -172,9 +184,7 @@ class _SearchedVideosState extends State<SearchedVideos> {
   Widget _buildBody() {
     if (_isLoading) {
       return const Center(
-        child: CircularProgressIndicator(
-          color: Color(0xFF3A567A),
-        ),
+        child: CircularProgressIndicator(color: Color(0xFF3A567A)),
       );
     }
 
@@ -233,20 +243,13 @@ class _SearchedVideosState extends State<SearchedVideos> {
       decoration: ShapeDecoration(
         color: const Color(0xFFF7F7FA),
         shape: RoundedRectangleBorder(
-          side: const BorderSide(
-            width: 1,
-            color: Color(0xFF3A567A),
-          ),
+          side: const BorderSide(width: 1, color: Color(0xFF3A567A)),
           borderRadius: BorderRadius.circular(10),
         ),
       ),
       child: Row(
         children: [
-          const Icon(
-            Icons.check,
-            size: 14,
-            color: Color(0xFF3A567A),
-          ),
+          const Icon(Icons.check, size: 14, color: Color(0xFF3A567A)),
           const SizedBox(width: 4),
           Text(
             text,
@@ -262,117 +265,140 @@ class _SearchedVideosState extends State<SearchedVideos> {
     );
   }
 
-  Widget _buildResultTag(String text) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-      decoration: BoxDecoration(
-        color: const Color(0xFFF7F7FA),
-        borderRadius: BorderRadius.circular(10),
-      ),
-      child: Text(
-        text,
-        style: const TextStyle(
-          color: Colors.black,
-          fontSize: 10,
-          fontFamily: 'Jost',
-          fontWeight: FontWeight.w300,
+  Widget _buildVideoResultItem(Video video) {
+    return GestureDetector(
+      onTap: () {
+        _navigateToVideoPlayer(video);
+      },
+      child: Container(
+        width: double.infinity,
+        height: 100,
+        padding: const EdgeInsets.all(12),
+        decoration: ShapeDecoration(
+          gradient: const LinearGradient(
+            begin: Alignment(0.98, -0.00),
+            end: Alignment(0.02, 1.00),
+            colors: [Color(0xFFEFF7FC), Color(0xFFF7F7FA)],
+          ),
+          shape: RoundedRectangleBorder(
+            side: const BorderSide(width: 1, color: Color(0x333A567A)),
+            borderRadius: BorderRadius.circular(20),
+          ),
+        ),
+        child: Row(
+          children: [
+            // Thumbnail
+            _buildThumbnailWidget(video.thumbnailPath ?? ''),
+            const SizedBox(width: 11),
+            // Video info
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  Text(
+                    video.title ?? 'No Title',
+                    style: const TextStyle(
+                      color: Colors.black,
+                      fontSize: 18,
+                      fontFamily: 'Jost',
+                      fontWeight: FontWeight.w400,
+                    ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  Text(
+                    _getUploaderText(video.uploader),
+                    style: const TextStyle(
+                      color: Colors.black,
+                      fontSize: 12,
+                      fontFamily: 'Jost',
+                      fontWeight: FontWeight.w300,
+                    ),
+                  ),
+                  Text(
+                    _formatDuration(video.durationSec),
+                    style: const TextStyle(
+                      color: Colors.black,
+                      fontSize: 10,
+                      fontFamily: 'Jost',
+                      fontWeight: FontWeight.w300,
+                    ),
+                  ),
+                  Text(
+                    _formatDate(video.sentDate),
+                    style: const TextStyle(
+                      color: Colors.black,
+                      fontSize: 8,
+                      fontFamily: 'Jost',
+                      fontWeight: FontWeight.w300,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
         ),
       ),
     );
   }
 
-  Widget _buildVideoResultItem(Map<String, dynamic> video) {
-    final title = (video['title'] ?? '') as String;
-    final tagsField = video['tags'] ?? video['tag'] ?? '';
-    final tags = tagsField
-        .toString()
-        .split(RegExp(r'[,\s]+'))
-        .where((e) => e.isNotEmpty)
-        .toList();
-    final sentDateText = (video['sentDate'] ?? '').toString();
-
+  Widget _buildThumbnailWidget(String thumbnailPath) {
     return Container(
-      height: 180,
-      decoration: ShapeDecoration(
-        color: Colors.white,
-        shape: RoundedRectangleBorder(
-          side: const BorderSide(
-            width: 1,
-            color: Color(0xFF3A567A),
-          ),
-          borderRadius: BorderRadius.circular(15),
+      width: 140,
+      height: 80,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(20),
+        color: Colors.grey[300],
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(20),
+        child: Image(
+          image: _getThumbnailImage(thumbnailPath),
+          width: 140,
+          height: 80,
+          fit: BoxFit.cover,
+          errorBuilder: (context, error, stackTrace) {
+            // If image fails to load, show a placeholder
+            return Container(
+              color: Colors.grey[300],
+              child: const Icon(
+                Icons.videocam_outlined,
+                color: Colors.grey,
+                size: 40,
+              ),
+            );
+          },
         ),
       ),
-      child: Row(
-        children: [
-          // Thumbnail
-          Container(
-            width: 130,
-            margin: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(15),
-              color: const Color(0xFFE0E0E0),
-              image: video['thumbnailPath'] != null &&
-                      (video['thumbnailPath'] as String).isNotEmpty
-                  ? DecorationImage(
-                      image: NetworkImage(video['thumbnailPath'] as String),
-                      fit: BoxFit.cover,
-                    )
-                  : null,
-            ),
-            child: video['thumbnailPath'] == null ||
-                    (video['thumbnailPath'] as String).isEmpty
-                ? const Icon(Icons.play_circle_fill,
-                    size: 48, color: Color(0xFF3A567A))
-                : null,
-          ),
-
-          // Info
-          Expanded(
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(4, 8, 12, 8),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Title
-                  Text(
-                    title,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      color: Colors.black,
-                      fontSize: 13,
-                      fontFamily: 'Kodchasan',
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-
-                  // Date
-                  Text(
-                    sentDateText,
-                    style: const TextStyle(
-                      color: Color(0x803A567A),
-                      fontSize: 10,
-                      fontFamily: 'Jost',
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-
-                  // tags
-                  if (tags.isNotEmpty)
-                    Wrap(
-                      spacing: 4,
-                      runSpacing: 4,
-                      children:
-                          tags.map((t) => _buildResultTag(t)).toList(),
-                    ),
-                ],
-              ),
-            ),
-          ),
-        ],
-      ),
     );
+  }
+
+  ImageProvider _getThumbnailImage(String thumbnailPath) {
+    if (thumbnailPath.startsWith('http')) {
+      return NetworkImage(thumbnailPath);
+    } else if (thumbnailPath.isNotEmpty) {
+      return NetworkImage('http://localhost:3000$thumbnailPath');
+    } else {
+      // Use AssetImage for placeholder
+      return const AssetImage('Asset/Thumbnail-Fake.png');
+    }
+  }
+
+  String _getUploaderText(int? uploader) {
+    return uploader != null ? 'User $uploader' : 'Unknown Uploader';
+  }
+
+  String _formatDuration(int? durationSec) {
+    if (durationSec == null) return 'Duration: Unknown';
+    final duration = Duration(seconds: durationSec);
+    final minutes = duration.inMinutes;
+    final seconds = duration.inSeconds.remainder(60);
+    return '${minutes}m ${seconds}s';
+  }
+
+  String _formatDate(DateTime? date) {
+    if (date == null) return 'Date unknown';
+    return '${date.day}/${date.month}/${date.year}';
   }
 }

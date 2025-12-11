@@ -1,7 +1,6 @@
 // lib/main.dart
 import 'package:flutter/material.dart';
 import 'package:ufix_mobile/screen/homepage.dart';
-import 'package:ufix_mobile/screen/search.dart';
 import 'package:ufix_mobile/models/video_model.dart';
 import 'package:ufix_mobile/screen/searched.dart';
 

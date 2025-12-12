@@ -4,7 +4,7 @@ require('dotenv').config();
 const db = mysql.createPool({
   host: process.env.DB_HOST || 'localhost',
   user: process.env.DB_USER || 'root',
-  password: process.env.DB_PASSWORD || '',  // kosong sesuai default Laragon
+  password: process.env.DB_PASSWORD || 'HDGSDmiuahdfu1245334#!!()**',  // kosong sesuai default Laragon - Lain kali file ini jangan di commit kecuali ada penggantian struktur
   database: process.env.DB_NAME || 'ufix',
   waitForConnections: true,
   connectionLimit: 10,

@@ -86,7 +86,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
     try {
       MediaKit.ensureInitialized();
       
-      final videoUrl = 'http://10.0.2.2:3000/api/video/watch/${widget.video.idVideo}';
+      final videoUrl = 'http://localhost:3000/api/video/watch/${widget.video.idVideo}';
       print('🎬 Loading video from: $videoUrl');
 
       _mediaPlayer = Player();

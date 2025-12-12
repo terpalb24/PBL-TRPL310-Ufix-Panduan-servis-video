@@ -1,6 +1,7 @@
 const fs = require("fs"); // removed db import because it was unused
 const path = require("path");
 const { dbPromise } = require("../config/database");
+const { videoUploadPath, thumbnailUploadPath } = require('./uploadConfig');
 
 
 const getVideoNew = async (req, res) => {
@@ -147,7 +148,33 @@ const getVideoUrl = async (req, res) => { // url maker - Jauharil
 
 const addVideo = async (req, res) => {
   try {
-    const { title, thumbnailPath, videoPath, mime_type } = req.body;
+    const { title } = req.body;
+    const videoFile = req.files['video'] ? req.files['video'][0] : null;
+    const thumbnailFile = req.files['thumbnail'] ? req.files['thumbnail'][0] : null;
+
+    // Check if required files are present
+    if (!videoFile) {
+      return res.status(400).json({ 
+        success: false, 
+        message: "Video file is required" 
+      });
+    }
+
+    // Check if title is provided
+    if (!title || title.trim() === '') {
+      // Delete uploaded files if title is missing
+      if (videoFile) await fs.unlink(videoFile.path);
+      if (thumbnailFile) await fs.unlink(thumbnailFile.path);
+      return res.status(400).json({ 
+        success: false, 
+        message: "Title is required" 
+      });
+    }
+
+    // Create relative paths for database storage
+    const videoPath = path.relative(process.cwd(), videoFile.path);
+    const thumbnailPath = thumbnailFile ? path.relative(process.cwd(), thumbnailFile.path) : null;
+    const mime_type = videoFile.mimetype;
 
     const query = `
       INSERT INTO video (title, thumbnailPath, videoPath, mime_type, sentDate)
@@ -156,53 +183,170 @@ const addVideo = async (req, res) => {
 
     await dbPromise.execute(query, [title, thumbnailPath, videoPath, mime_type]);
 
+    // Get the inserted video ID
+    const [result] = await dbPromise.execute('SELECT LAST_INSERT_ID() as id');
+    const videoId = result[0].id;
+
     res.json({
       success: true,
-      message: "Video berhasil ditambahkan"
+      message: "Video berhasil ditambahkan",
+      videoId: videoId,
+      videoUrl: `http://${req.get('host')}/api/video/watch/${videoId}`
     });
   } catch (error) {
     console.error("Error adding video:", error);
-    res.status(500).json({ success: false, message: "Server error" });
+    
+    // Clean up uploaded files on error
+    if (req.files) {
+      for (const field in req.files) {
+        for (const file of req.files[field]) {
+          try {
+            await fs.unlink(file.path);
+          } catch (unlinkError) {
+            console.error("Error deleting file:", unlinkError);
+          }
+        }
+      }
+    }
+    
+    res.status(500).json({ 
+      success: false, 
+      message: "Server error: " + error.message 
+    });
   }
 };
-
 
 const updateVideo = async (req, res) => {
   try {
     const id = req.params.id;
-    const { title, thumbnailPath, videoPath, mime_type } = req.body;
+    const { title } = req.body;
+    const videoFile = req.files['video'] ? req.files['video'][0] : null;
+    const thumbnailFile = req.files['thumbnail'] ? req.files['thumbnail'][0] : null;
 
-    const query = `
-      UPDATE video
-      SET title = ?, thumbnailPath = ?, videoPath = ?, mime_type = ?
-      WHERE idVideo = ?
-    `;
+    // Check if video exists
+    const [existingVideo] = await dbPromise.execute(
+      'SELECT videoPath, thumbnailPath FROM video WHERE idVideo = ?',
+      [id]
+    );
 
-    await dbPromise.execute(query, [
-      title,
-      thumbnailPath,
-      videoPath,
-      mime_type,
-      id
-    ]);
+    if (existingVideo.length === 0) {
+      // Clean up uploaded files if video doesn't exist
+      if (videoFile) await fs.unlink(videoFile.path);
+      if (thumbnailFile) await fs.unlink(thumbnailFile.path);
+      return res.status(404).json({ 
+        success: false, 
+        message: "Video not found" 
+      });
+    }
+
+    const currentVideo = existingVideo[0];
+    let videoPath = currentVideo.videoPath;
+    let thumbnailPath = currentVideo.thumbnailPath;
+    let mime_type = null;
+
+    // Handle video file update
+    if (videoFile) {
+      // Delete old video file if exists
+      if (currentVideo.videoPath && fsSync.existsSync(currentVideo.videoPath)) {
+        await fs.unlink(currentVideo.videoPath);
+      }
+      videoPath = path.relative(process.cwd(), videoFile.path);
+      mime_type = videoFile.mimetype;
+    }
+
+    // Handle thumbnail file update
+    if (thumbnailFile) {
+      // Delete old thumbnail file if exists
+      if (currentVideo.thumbnailPath && fsSync.existsSync(currentVideo.thumbnailPath)) {
+        await fs.unlink(currentVideo.thumbnailPath);
+      }
+      thumbnailPath = path.relative(process.cwd(), thumbnailFile.path);
+    }
+
+    // Prepare update query based on what's being updated
+    let query = 'UPDATE video SET title = ?';
+    const params = [title];
+
+    if (videoFile) {
+      query += ', videoPath = ?, mime_type = ?';
+      params.push(videoPath, mime_type);
+    }
+
+    if (thumbnailFile) {
+      query += ', thumbnailPath = ?';
+      params.push(thumbnailPath);
+    }
+
+    query += ' WHERE idVideo = ?';
+    params.push(id);
+
+    await dbPromise.execute(query, params);
 
     res.json({
       success: true,
-      message: "Video berhasil diperbarui"
+      message: "Video berhasil diperbarui",
+      videoId: id,
+      videoUrl: `http://${req.get('host')}/api/video/watch/${id}`
     });
   } catch (error) {
     console.error("Error updating video:", error);
-    res.status(500).json({ success: false, message: "Server error" });
+    
+    // Clean up uploaded files on error
+    if (req.files) {
+      for (const field in req.files) {
+        for (const file of req.files[field]) {
+          try {
+            await fs.unlink(file.path);
+          } catch (unlinkError) {
+            console.error("Error deleting file:", unlinkError);
+          }
+        }
+      }
+    }
+    
+    res.status(500).json({ 
+      success: false, 
+      message: "Server error: " + error.message 
+    });
   }
 };
-
 
 const deleteVideo = async (req, res) => {
   try {
     const id = req.params.id;
 
+    // Get video details before deleting from database
+    const [videoResults] = await dbPromise.execute(
+      'SELECT videoPath, thumbnailPath FROM video WHERE idVideo = ?',
+      [id]
+    );
+
+    if (videoResults.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: "Video not found"
+      });
+    }
+
+    const video = videoResults[0];
+
+    // Delete the video from database first
     const query = "DELETE FROM video WHERE idVideo = ?";
     await dbPromise.execute(query, [id]);
+
+    // Delete the physical files
+    const filesToDelete = [];
+    
+    if (video.videoPath && fsSync.existsSync(video.videoPath)) {
+      filesToDelete.push(fs.unlink(video.videoPath));
+    }
+    
+    if (video.thumbnailPath && fsSync.existsSync(video.thumbnailPath)) {
+      filesToDelete.push(fs.unlink(video.thumbnailPath));
+    }
+
+    // Wait for all file deletions to complete
+    await Promise.allSettled(filesToDelete);
 
     res.json({
       success: true,
@@ -210,9 +354,40 @@ const deleteVideo = async (req, res) => {
     });
   } catch (error) {
     console.error("Error deleting video:", error);
-    res.status(500).json({ success: false, message: "Server error" });
+    res.status(500).json({ 
+      success: false, 
+      message: "Server error: " + error.message 
+    });
+  }
+};
+
+// Helper function to get all videos (optional)
+const getAllVideos = async (req, res) => {
+  try {
+    const query = 'SELECT idVideo, title, thumbnailPath, videoPath, mime_type, sentDate FROM video ORDER BY sentDate DESC';
+    const [videos] = await dbPromise.execute(query);
+
+    const videosWithUrls = videos.map(video => ({
+      id: video.idVideo,
+      title: video.title,
+      thumbnailUrl: video.thumbnailPath ? `http://${req.get('host')}/${video.thumbnailPath}` : null,
+      videoUrl: `http://${req.get('host')}/api/video/watch/${video.idVideo}`,
+      mime_type: video.mime_type,
+      sentDate: video.sentDate
+    }));
+
+    res.json({
+      success: true,
+      videos: videosWithUrls
+    });
+  } catch (error) {
+    console.error("Error getting videos:", error);
+    res.status(500).json({ 
+      success: false, 
+      message: "Server error: " + error.message 
+    });
   }
 };
 
  
-module.exports = { getVideoNew, watchVideo, getVideoUrl, addVideo, updateVideo, deleteVideo};
+module.exports = { getVideoNew, watchVideo, getVideoUrl, addVideo, updateVideo, deleteVideo, getAllVideos};

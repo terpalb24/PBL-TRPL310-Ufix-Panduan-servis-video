@@ -10,7 +10,7 @@ const signUp = async (req, res) => {
     const { email, displayName, PASSWORD, role} = req.body;
 
     // validasi input
-    if (!email || !displayName || !password) {
+    if (!email || !displayName || !PASSWORD) {
       return res.status(400).json({
         success: false,
         message: "Masukkan Email, Display Name, dan Password",
@@ -31,7 +31,7 @@ const signUp = async (req, res) => {
 
     const hashedPassword = crypto
       .createHash("sha256")
-      .update(password)
+      .update(PASSWORD)
       .digest("hex");
 
     // insert user baru

@@ -27,7 +27,7 @@ class ApiService {
   //            AUTH
   // ================================
   static Future<Map<String, dynamic>> signUp(
-      String email, String displayName, String password) async {
+      String email, String displayName, String PASSWORD) async {
     try {
       final response = await http.post(
         Uri.parse('$baseUrl/auth/signUp'),
@@ -35,7 +35,7 @@ class ApiService {
         body: json.encode({
           'email': email,
           'displayName': displayName,
-          'password': password,
+          'PASSWORD': PASSWORD,
         }),
       );
 

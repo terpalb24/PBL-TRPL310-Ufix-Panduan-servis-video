@@ -5,7 +5,7 @@ import Layout from '@/components/Layout';
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata = {
-  title: 'Masuk',
+  title: 'Login',
   description: 'A Next.js app with DaisyUI and existing backend',
 };
 

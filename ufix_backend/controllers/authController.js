@@ -7,10 +7,10 @@ const { dbPromise } = require("../config/database");
 // SIGNUP
 const signUp = async (req, res) => {
   try {
-    const { email, displayName, PASSWORD, role} = req.body;
+    const { email, displayName, PASSWORD, role } = req.body;
 
     // validasi input
-    if (!email || !displayName || !password) {
+    if (!email || !displayName || !PASSWORD) {
       return res.status(400).json({
         success: false,
         message: "Masukkan Email, Display Name, dan Password",
@@ -18,7 +18,8 @@ const signUp = async (req, res) => {
     }
 
     // cek apakah user sudah ada
-    const [users] = await dbPromise.query("SELECT * FROM users WHERE email = ?", 
+    const [users] = await dbPromise.query(
+      "SELECT * FROM users WHERE email = ?",
       [email]
     );
 
@@ -29,20 +30,21 @@ const signUp = async (req, res) => {
       });
     }
 
+    // HASH SEKALI (single SHA256)
     const hashedPassword = crypto
       .createHash("sha256")
-      .update(password)
+      .update(PASSWORD)
       .digest("hex");
 
     // insert user baru
     const insertQuery =
-      "INSERT INTO users (email, displayName, PASSWORD) VALUES (?, ?, ?)";
+      "INSERT INTO users (email, displayName, PASSWORD, role) VALUES (?, ?, ?, ?)";
 
     const [result] = await dbPromise.query(insertQuery, [
       email,
       displayName,
       hashedPassword,
-      "appuser", //default
+      role || "appuser", // default role
     ]);
 
     res.status(201).json({
@@ -52,7 +54,7 @@ const signUp = async (req, res) => {
         id: result.insertId,
         displayName,
         email,
-        role: "appuser",
+        role: role || "appuser",
       },
     });
   } catch (error) {
@@ -67,9 +69,10 @@ const signUp = async (req, res) => {
 // LOGIN
 const login = async (req, res) => {
   try {
+    console.log("REQ BODY:", req.body);
+
     const { email, password } = req.body;
 
-    // validasi input
     if (!email || !password) {
       return res.status(400).json({
         success: false,
@@ -82,16 +85,19 @@ const login = async (req, res) => {
       .update(password)
       .digest("hex");
 
-    const LoginQuery = 'SELECT idPengguna, email, displayName, role, PASSWORD from users where email = ? AND PASSWORD = SHA2(?, 256)';
-    const [LoginData] = await dbPromise.execute(LoginQuery, [email, password]);
+    const LoginQuery = `
+      SELECT idPengguna, email, displayName, role, PASSWORD 
+      FROM users 
+      WHERE email = ? AND PASSWORD = ?
+    `;
+    const [LoginData] = await dbPromise.execute(LoginQuery, [email, hashed]);
 
     if (LoginData.length > 0) {
       const user = LoginData[0];
 
-      // generate JWT (include a standard claim `userId`)
       const token = jwt.sign(
-        { 
-          userId: user.idPengguna, 
+        {
+          userId: user.idPengguna,
           email: user.email,
           role: user.role,
         },
@@ -106,15 +112,15 @@ const login = async (req, res) => {
         user: {
           id: user.idPengguna,
           email: user.email,
+          role: user.role
         },
-      });
-    } else {
-      return res.status(401).json({
-        success: false,
-        message: "Email atau password salah",
       });
     }
 
+    return res.status(401).json({
+      success: false,
+      message: "Email atau password salah",
+    });
   } catch (error) {
     console.error("Login error:", error);
     res.status(500).json({
@@ -124,12 +130,89 @@ const login = async (req, res) => {
   }
 };
 
+
+// LOGIN ADMIN (WEB)
+const loginAdmin = async (req, res) => {
+  try {
+    console.log("REQ ADMIN LOGIN:", req.body);
+
+    const { email, password } = req.body;
+
+    if (!email || !password) {
+      return res.status(400).json({
+        success: false,
+        message: "Masukkan email dan password",
+      });
+    }
+
+    // Hash password
+    const hashed = crypto
+      .createHash("sha256")
+      .update(password)
+      .digest("hex");
+
+    // Ambil user role admin
+    const query = `
+      SELECT idPengguna, email, displayName, role, PASSWORD
+      FROM users
+      WHERE email = ? AND role = 'admin'
+    `;
+    const [rows] = await dbPromise.query(query, [email]);
+
+    if (rows.length === 0) {
+      return res.status(401).json({
+        success: false,
+        message: "Admin tidak ditemukan atau email tidak terdaftar sebagai admin",
+      });
+    }
+
+    const admin = rows[0];
+
+    // Cocokkan password
+    if (admin.PASSWORD !== hashed) {
+      return res.status(401).json({
+        success: false,
+        message: "Password salah",
+      });
+    }
+
+    // Generate token
+    const token = jwt.sign(
+      {
+        userId: admin.idPengguna,
+        email: admin.email,
+        role: admin.role,
+      },
+      process.env.JWT_SECRET || "default_secret",
+      { expiresIn: "24h" }
+    );
+
+    return res.status(200).json({
+      success: true,
+      message: "Login admin berhasil",
+      token,
+      user: {
+        id: admin.idPengguna,
+        email: admin.email,
+        role: admin.role,
+        displayName: admin.displayName,
+      },
+    });
+  } catch (error) {
+    console.error("Login admin error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Server error: " + error.message,
+    });
+  }
+};
+
+
 // GET PROFILE
 const getProfile = async (req, res) => {
   try {
-    const userId = req.userId; // pastikan middleware auth sudah men-set req.userId
+    const userId = req.userId;
 
-    // ambil data user
     const [results] = await dbPromise.query(
       "SELECT idPengguna, displayName, email, role FROM users WHERE idPengguna = ?",
       [userId]
@@ -158,5 +241,6 @@ const getProfile = async (req, res) => {
 module.exports = {
   signUp,
   login,
+  loginAdmin,
   getProfile,
 };

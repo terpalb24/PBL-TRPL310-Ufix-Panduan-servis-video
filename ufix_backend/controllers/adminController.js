@@ -47,17 +47,17 @@ const getUserById = async (req, res) => {
 
 // Admin create user
 const createUserByAdmin = async (req, res) => {
-  const { email, displayName, role, password } = req.body;
+  const { email, displayName, role, PASSWORD } = req.body;
 
-  if (!email || !displayName || !role || !password) {
+  if (!email || !displayName || !role || !PASSWORD) {
     return res.status(400).json({ success: false, message: "Missing fields" });
   }
 
-  const hashed = hashPassword(password);
+  const hashed = hashPassword(PASSWORD);
 
   try {
     const query = `
-      INSERT INTO users (email, displayName, role, password)
+      INSERT INTO users (email, displayName, role, PASSWORD)
       VALUES (?, ?, ?, ?)
     `;
 
@@ -83,9 +83,9 @@ const updateUser = async (req, res) => {
     let params = [email, displayName, role, id];
 
     // Jika password dikirim, update juga
-    if (password) {
-      const hashed = hashPassword(password);
-      query = "UPDATE users SET email=?, displayName=?, role=?, password=? WHERE idPengguna=?";
+    if (PASSWORD) {
+      const hashed = hashPassword(PASSWORD);
+      query = "UPDATE users SET email=?, displayName=?, role=?, PASSWORD=? WHERE idPengguna=?";
       params = [email, displayName, role, hashed, id];
     }
 

@@ -1,3 +1,6 @@
+console.log("RUNNING FILE:", __filename);
+
+
 const express = require('express');
 const cors = require('cors');
 require('dotenv').config();
@@ -10,7 +13,7 @@ const bookmarkRoutes = require('./routes/bookmarkRoutes');
 const commentsRoutes = require('./routes/commentsRoutes');
 
 const app = express();
-const PORT = process.env.PORT || 3001;
+const PORT = process.env.PORT || 3000;
 
 // Middleware
 app.use(cors({

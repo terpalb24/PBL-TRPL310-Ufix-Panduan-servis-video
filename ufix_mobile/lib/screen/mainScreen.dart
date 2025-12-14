@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:ufix_mobile/screen/searched.dart';
 import 'homepage.dart';
-import 'search.dart';
+import 'searched.dart';
 import 'bookmark.dart';
 
 class FrontScreen extends StatefulWidget {
@@ -15,7 +16,7 @@ class _FrontScreenState extends State<FrontScreen> {
 
   final List<Widget> _pages = [
     Homepage(),
-    Search(),
+    SearchedVideos(),
     Bookmark(),
   ];
 

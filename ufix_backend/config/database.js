@@ -1,6 +1,11 @@
 const mysql = require('mysql2');
 require('dotenv').config();
 
+
+
+
+//INGAT JANGAN DI COMMIT, NANTI MAU TEST UBAH DULU INI DAN ENV, TP JANGAN DI COMMIT
+
 const db = mysql.createPool({
   host: process.env.DB_HOST || 'localhost',
   user: process.env.DB_USER || 'root',

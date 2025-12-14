@@ -5,9 +5,20 @@ const router = express.Router();
 router.get('/new', getVideoNew);
 router.get('/url/:id', getVideoUrl);
 router.get('/watch/:id', watchVideo);
-router.post('/add', addVideo);
-router.put('/update/:id', updateVideo);
-router.delete('/delete/:id', deleteVideo);
+// For adding new video with file upload
+router.post('/video', upload.fields([
+  { name: 'video', maxCount: 1 },
+  { name: 'thumbnail', maxCount: 1 }
+]), addVideo);
+
+// For updating video with optional file upload
+router.put('/video/:id', upload.fields([
+  { name: 'video', maxCount: 1 },
+  { name: 'thumbnail', maxCount: 1 }
+]), updateVideo);
+
+// Other routes remain the same
+router.delete('/video/:id', deleteVideo);
 
 
 module.exports = router;

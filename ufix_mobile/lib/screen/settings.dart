@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'settings.dart';
 
 class Settings extends StatelessWidget {
   const Settings({super.key});

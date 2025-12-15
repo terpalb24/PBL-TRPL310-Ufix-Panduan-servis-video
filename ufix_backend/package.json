@@ -4,9 +4,28 @@
   "description": "streaming app",
   "main": "app.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "jest",
+    "test:unit": "jest tests/unit --verbose",
+    "test:integration": "NODE_ENV=test jest tests/integration --verbose",
+    "test:feature": "jest tests/Feature --verbose",
+    "test:integration:tag": "NODE_ENV=test jest tests/integration/tagIntegrationTest.test.js --verbose",
+    "test:all": "npm run test:unit && npm run test:integration && npm run test:feature",
+    "test:e2e": "jest tests/e2e",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
     "start": "node app.js",
     "dev": "nodemon app.js"
+    
+  },
+  "jest": {
+    "testEnvironment": "node",
+    "testPathIgnorePatterns": [
+      "/node_modules/"
+    ],
+    "collectCoverageFrom": [
+      "controllers/**/*.js",
+      "routes/**/*.js"
+    ]
   },
   "author": "",
   "license": "ISC",
@@ -19,5 +38,11 @@
     "multer": "^2.0.2",
     "mysql2": "^3.15.3",
     "nodemon": "^3.1.9"
+  },
+  "devDependencies": {
+    "@types/jest": "^30.0.0",
+    "@types/supertest": "^6.0.3",
+    "jest": "^30.2.0",
+    "supertest": "^7.1.4"
   }
 }

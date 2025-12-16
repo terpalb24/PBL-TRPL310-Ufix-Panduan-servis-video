@@ -1,3 +1,4 @@
+// uploadConfig.js
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
@@ -53,6 +54,7 @@ const fileFilter = (req, file, cb) => {
   }
 };
 
+// Create multer instance with configuration
 const upload = multer({
   storage: videoStorage,
   fileFilter: fileFilter,
@@ -61,4 +63,8 @@ const upload = multer({
   }
 });
 
-module.exports = { upload, videoUploadPath, thumbnailUploadPath };
+module.exports = { 
+  upload,  // Export the multer instance directly
+  videoUploadPath, 
+  thumbnailUploadPath 
+};

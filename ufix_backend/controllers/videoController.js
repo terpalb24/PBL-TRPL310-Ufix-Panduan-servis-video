@@ -1,8 +1,8 @@
-const fs = require("fs"); // removed db import because it was unused
+const fs = require("fs");
 const path = require("path");
 const { dbPromise } = require("../config/database");
-const { videoUploadPath, thumbnailUploadPath } = require('./uploadConfig');
-
+// Note: Remove the import of videoUploadPath and thumbnailUploadPath from uploadConfig
+// since they're not used in this file
 
 const getVideoNew = async (req, res) => {
   console.log('=== getVideoNew called ===');
@@ -44,7 +44,7 @@ const getVideoNew = async (req, res) => {
   }
 };
 
-const watchVideo = async (req, res) => { // stream function - Jauharil
+const watchVideo = async (req, res) => {
   try {
     const videoId = req.params.id;
     console.log('watchVideo called for video ID:', videoId);
@@ -62,7 +62,7 @@ const watchVideo = async (req, res) => { // stream function - Jauharil
     const video = results[0];
     const videoPath = path.join(__dirname, '..', video.videoPath);
 
-    // Check if it actually exists - Jauharil
+    // Check if it actually exists
     if (!fs.existsSync(videoPath)) {
       return res.status(404).json({
         success: false,
@@ -110,7 +110,7 @@ const watchVideo = async (req, res) => { // stream function - Jauharil
   }
 };
 
-const getVideoUrl = async (req, res) => { // url maker - Jauharil
+const getVideoUrl = async (req, res) => {
   try {
     const videoId = req.params.id;
     console.log('getVideoUrl called for video ID:', videoId);
@@ -145,7 +145,6 @@ const getVideoUrl = async (req, res) => { // url maker - Jauharil
   }
 };
 
-
 const addVideo = async (req, res) => {
   try {
     const { title } = req.body;
@@ -163,8 +162,8 @@ const addVideo = async (req, res) => {
     // Check if title is provided
     if (!title || title.trim() === '') {
       // Delete uploaded files if title is missing
-      if (videoFile) await fs.unlink(videoFile.path);
-      if (thumbnailFile) await fs.unlink(thumbnailFile.path);
+      if (videoFile) fs.unlinkSync(videoFile.path);
+      if (thumbnailFile) fs.unlinkSync(thumbnailFile.path);
       return res.status(400).json({ 
         success: false, 
         message: "Title is required" 
@@ -201,7 +200,9 @@ const addVideo = async (req, res) => {
       for (const field in req.files) {
         for (const file of req.files[field]) {
           try {
-            await fs.unlink(file.path);
+            if (fs.existsSync(file.path)) {
+              fs.unlinkSync(file.path);
+            }
           } catch (unlinkError) {
             console.error("Error deleting file:", unlinkError);
           }
@@ -231,8 +232,8 @@ const updateVideo = async (req, res) => {
 
     if (existingVideo.length === 0) {
       // Clean up uploaded files if video doesn't exist
-      if (videoFile) await fs.unlink(videoFile.path);
-      if (thumbnailFile) await fs.unlink(thumbnailFile.path);
+      if (videoFile && fs.existsSync(videoFile.path)) fs.unlinkSync(videoFile.path);
+      if (thumbnailFile && fs.existsSync(thumbnailFile.path)) fs.unlinkSync(thumbnailFile.path);
       return res.status(404).json({ 
         success: false, 
         message: "Video not found" 
@@ -247,8 +248,8 @@ const updateVideo = async (req, res) => {
     // Handle video file update
     if (videoFile) {
       // Delete old video file if exists
-      if (currentVideo.videoPath && fsSync.existsSync(currentVideo.videoPath)) {
-        await fs.unlink(currentVideo.videoPath);
+      if (currentVideo.videoPath && fs.existsSync(path.join(process.cwd(), currentVideo.videoPath))) {
+        fs.unlinkSync(path.join(process.cwd(), currentVideo.videoPath));
       }
       videoPath = path.relative(process.cwd(), videoFile.path);
       mime_type = videoFile.mimetype;
@@ -257,8 +258,8 @@ const updateVideo = async (req, res) => {
     // Handle thumbnail file update
     if (thumbnailFile) {
       // Delete old thumbnail file if exists
-      if (currentVideo.thumbnailPath && fsSync.existsSync(currentVideo.thumbnailPath)) {
-        await fs.unlink(currentVideo.thumbnailPath);
+      if (currentVideo.thumbnailPath && fs.existsSync(path.join(process.cwd(), currentVideo.thumbnailPath))) {
+        fs.unlinkSync(path.join(process.cwd(), currentVideo.thumbnailPath));
       }
       thumbnailPath = path.relative(process.cwd(), thumbnailFile.path);
     }
@@ -296,7 +297,9 @@ const updateVideo = async (req, res) => {
       for (const field in req.files) {
         for (const file of req.files[field]) {
           try {
-            await fs.unlink(file.path);
+            if (fs.existsSync(file.path)) {
+              fs.unlinkSync(file.path);
+            }
           } catch (unlinkError) {
             console.error("Error deleting file:", unlinkError);
           }
@@ -337,12 +340,12 @@ const deleteVideo = async (req, res) => {
     // Delete the physical files
     const filesToDelete = [];
     
-    if (video.videoPath && fsSync.existsSync(video.videoPath)) {
-      filesToDelete.push(fs.unlink(video.videoPath));
+    if (video.videoPath && fs.existsSync(path.join(process.cwd(), video.videoPath))) {
+      filesToDelete.push(fs.promises.unlink(path.join(process.cwd(), video.videoPath)));
     }
     
-    if (video.thumbnailPath && fsSync.existsSync(video.thumbnailPath)) {
-      filesToDelete.push(fs.unlink(video.thumbnailPath));
+    if (video.thumbnailPath && fs.existsSync(path.join(process.cwd(), video.thumbnailPath))) {
+      filesToDelete.push(fs.promises.unlink(path.join(process.cwd(), video.thumbnailPath)));
     }
 
     // Wait for all file deletions to complete
@@ -389,5 +392,4 @@ const getAllVideos = async (req, res) => {
   }
 };
 
- 
-module.exports = { getVideoNew, watchVideo, getVideoUrl, addVideo, updateVideo, deleteVideo, getAllVideos};
+module.exports = { getVideoNew, watchVideo, getVideoUrl, addVideo, updateVideo, deleteVideo, getAllVideos };

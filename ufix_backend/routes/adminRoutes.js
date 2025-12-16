@@ -9,10 +9,10 @@ const {
 } = require("../controllers/adminController");
 
 const { authenticateToken } = require("../middleware/authMiddleware");
-const { authorizeAdmin } = require("../middleware/adminMiddleware");
+const { adminOnly } = require("../middleware/roleGuard");
 
 // Semua route admin harus lewat middleware ini:
-router.use(authenticateToken, authorizeAdmin);
+router.use(authenticateToken, adminOnly);
 
 router.get("/users", getAllUsers);
 router.get("/users/:id", getUserById);

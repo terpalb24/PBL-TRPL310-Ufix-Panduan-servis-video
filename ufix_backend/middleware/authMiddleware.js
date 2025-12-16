@@ -1,30 +1,36 @@
-const jwt = require('jsonwebtoken');
+const jwt = require("jsonwebtoken");
 
 const authenticateToken = (req, res, next) => {
-  const authHeader = req.headers['authorization'];
-  const token = authHeader && authHeader.split(' ')[1]; // Bearer TOKEN
+  const authHeader = req.headers.authorization;
 
-  if (!token) {
+  if (!authHeader) {
     return res.status(401).json({
       success: false,
-      message: 'Access token required'
+      message: "Token tidak ditemukan",
     });
   }
 
-  jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
-    if (err) {
-      return res.status(403).json({
-        success: false,
-        message: 'Invalid or expired token'
-      });
-    }
+  const token = authHeader.split(" ")[1];
+
+  try {
+    const decoded = jwt.verify(
+      token,
+      process.env.JWT_SECRET || "default_secret"
+    );
 
     req.userId = decoded.userId;
-    req.userEmail = decoded.email;
-    req.userRole = decoded.role;
+    req.role = decoded.role;
+    req.platform = decoded.platform;
 
     next();
-  });
+  } catch (err) {
+    return res.status(401).json({
+      success: false,
+      message: "Token tidak valid",
+    });
+  }
 };
 
-module.exports = {authenticateToken};
+module.exports = {
+  authenticateToken,
+};

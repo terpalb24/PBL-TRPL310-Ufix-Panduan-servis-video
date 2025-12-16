@@ -6,6 +6,7 @@ const cors = require('cors');
 require('dotenv').config();
 const db = require('./config/database');
 const authRoutes = require('./routes/authRoutes');
+const webRoutes = require("./routes/webRoutes");
 const adminRoutes = require('./routes/adminRoutes');
 const searchRoutes = require('./routes/searchRoutes');
 const videoRoutes = require('./routes/videoRoutes');
@@ -13,7 +14,7 @@ const bookmarkRoutes = require('./routes/bookmarkRoutes');
 const commentsRoutes = require('./routes/commentsRoutes');
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 3001;
 
 // Middleware
 app.use(cors({
@@ -26,6 +27,7 @@ app.use(express.urlencoded({ extended: true }));
 
 // Routes
 app.use('/api/auth', authRoutes);
+app.use("/api/web", webRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/search', searchRoutes);
 app.use('/api/video', videoRoutes);

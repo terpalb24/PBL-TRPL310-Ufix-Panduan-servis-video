@@ -1,18 +1,28 @@
-const express = require('express');
-const { signUp, login, getProfile, loginAdmin} = require('../controllers/authController');
-const { authenticateToken } = require('../middleware/authMiddleware');
+const express = require("express");
+const {
+  signUp,
+  loginMobile,
+  loginWeb,
+  getProfile,
+} = require("../controllers/authController");
+const { authenticateToken } = require("../middleware/authMiddleware");
 
 const router = express.Router();
 
-// Public routes
-router.post('/signUp', signUp);
-router.post('/login', login);
+// PUBLIC ROUTES
 
-// Admin on Web
-router.post('/admin/login', loginAdmin);
+// Signup (default appuser - mobile)
+router.post("/signup", signUp);
 
+// Login MOBILE (appuser only)
+router.post("/login-mobile", loginMobile);
 
-// Protected routes
-router.get('/profile', authenticateToken, getProfile);
+// Login WEB (admin & teknisi)
+router.post("/login-web", loginWeb);
+
+// PROTECTED ROUTES
+
+// Semua role (berdasarkan token)
+router.get("/profile", authenticateToken, getProfile);
 
 module.exports = router;

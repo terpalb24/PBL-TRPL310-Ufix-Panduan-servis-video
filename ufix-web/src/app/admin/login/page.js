@@ -12,7 +12,7 @@ export default function LoginAdminPage() {
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
 
-  const API_URL = "http://localhost:3001/api/auth/login";
+  const API_URL = "http://localhost:3001/api/auth/login-web";
 
   const handleLogin = async (e) => {
     e.preventDefault();

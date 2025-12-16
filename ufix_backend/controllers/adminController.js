@@ -47,13 +47,13 @@ const getUserById = async (req, res) => {
 
 // Admin create user
 const createUserByAdmin = async (req, res) => {
-  const { email, displayName, role, PASSWORD } = req.body;
+  const { email, displayName, role, password } = req.body;
 
-  if (!email || !displayName || !role || !PASSWORD) {
+  if (!email || !displayName || !role || !password) {
     return res.status(400).json({ success: false, message: "Missing fields" });
   }
 
-  const hashed = hashPassword(PASSWORD);
+  const hashed = hashPassword(password);
 
   try {
     const query = `
@@ -74,6 +74,7 @@ const createUserByAdmin = async (req, res) => {
 };
 
 // Update user
+// Update user
 const updateUser = async (req, res) => {
   const id = req.params.id;
   const { email, displayName, role, password } = req.body;
@@ -82,9 +83,8 @@ const updateUser = async (req, res) => {
     let query = "UPDATE users SET email=?, displayName=?, role=? WHERE idPengguna=?";
     let params = [email, displayName, role, id];
 
-    // Jika password dikirim, update juga
-    if (PASSWORD) {
-      const hashed = hashPassword(PASSWORD);
+    if (password) {
+      const hashed = hashPassword(password);
       query = "UPDATE users SET email=?, displayName=?, role=?, PASSWORD=? WHERE idPengguna=?";
       params = [email, displayName, role, hashed, id];
     }
@@ -100,6 +100,7 @@ const updateUser = async (req, res) => {
     res.status(500).json({ success: false, message: "Server error" });
   }
 };
+
 
 // Delete user
 const deleteUser = async (req, res) => {

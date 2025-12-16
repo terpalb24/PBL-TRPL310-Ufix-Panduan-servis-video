@@ -7,9 +7,9 @@ class ApiService {
   static String get baseUrl {
     if (Platform.isAndroid) {
 
-      return 'http://10.0.2.2:3000/api'; // Remove /auth
+      return 'http://10.0.2.2:3001/api'; // Remove /auth
     } else {
-      return 'http://localhost:3000/api';
+      return 'http://localhost:3001/api';
     }
   }
 
@@ -27,7 +27,7 @@ class ApiService {
   //            AUTH
   // ================================
   static Future<Map<String, dynamic>> signUp(
-      String email, String displayName, String PASSWORD) async {
+      String email, String displayName, String password) async {
     try {
       final response = await http.post(
         Uri.parse('$baseUrl/auth/signUp'),
@@ -35,7 +35,7 @@ class ApiService {
         body: json.encode({
           'email': email,
           'displayName': displayName,
-          'PASSWORD': PASSWORD,
+          'password': password,
         }),
       );
 

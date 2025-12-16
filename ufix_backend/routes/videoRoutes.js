@@ -1,5 +1,7 @@
 const express = require('express');
+const { upload } = require('../controllers/uploadConfig');
 const { getVideoNew, getVideoUrl, watchVideo, addVideo, updateVideo, deleteVideo } = require('../controllers/videoController');
+
 const router = express.Router();
 
 router.get('/new', getVideoNew);

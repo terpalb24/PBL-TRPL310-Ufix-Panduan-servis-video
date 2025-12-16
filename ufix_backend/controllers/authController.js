@@ -1,246 +1,216 @@
-// lib/controllers/authController.js
-const db = require("../config/database");
 const crypto = require("crypto");
 const jwt = require("jsonwebtoken");
 const { dbPromise } = require("../config/database");
 
-// SIGNUP
+// Sign Up (appuser - mobile)
 const signUp = async (req, res) => {
   try {
-    const { email, displayName, PASSWORD, role } = req.body;
 
-    // validasi input
-    if (!email || !displayName || !PASSWORD) {
+    console.log("REQ BODY SIGNUP:", req.body);
+    const { email, displayName, password } = req.body;
+
+    if (!email || !displayName || !password) {
       return res.status(400).json({
         success: false,
-        message: "Masukkan Email, Display Name, dan Password",
+        message: "Email, display name, dan password wajib diisi",
       });
     }
 
-    // cek apakah user sudah ada
-    const [users] = await dbPromise.query(
-      "SELECT * FROM users WHERE email = ?",
+    // Cek email
+    const [exists] = await dbPromise.query(
+      "SELECT idPengguna FROM users WHERE email = ?",
       [email]
     );
 
-    if (users.length > 0) {
+    if (exists.length > 0) {
       return res.status(400).json({
         success: false,
         message: "Email sudah terdaftar",
       });
     }
 
-    // HASH SEKALI (single SHA256)
     const hashedPassword = crypto
       .createHash("sha256")
-      .update(PASSWORD)
+      .update(password.trim())
       .digest("hex");
 
-    // insert user baru
-    const insertQuery =
-      "INSERT INTO users (email, displayName, PASSWORD, role) VALUES (?, ?, ?, ?)";
-
-    const [result] = await dbPromise.query(insertQuery, [
-      email,
-      displayName,
-      hashedPassword,
-      role || "appuser", // default role
-    ]);
+    const [result] = await dbPromise.query(
+      "INSERT INTO users (email, displayName, PASSWORD, role) VALUES (?, ?, ?, 'appuser')",
+      [email, displayName, hashedPassword]
+    );
 
     res.status(201).json({
       success: true,
-      message: "User berhasil didaftarkan",
+      message: "Registrasi berhasil",
       user: {
         id: result.insertId,
-        displayName,
         email,
-        role: role || "appuser",
+        displayName,
+        role: "appuser",
       },
     });
-  } catch (error) {
-    console.error("Signup error:", error);
-    res.status(500).json({
-      success: false,
-      message: "Server error: " + error.message,
-    });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
   }
 };
 
-// LOGIN
-const login = async (req, res) => {
+// Login (appuser - mobile)
+const loginMobile = async (req, res) => {
   try {
-    console.log("REQ BODY:", req.body);
 
+    console.log("REQ BODY LOGIN MOBILE:", req.body);
     const { email, password } = req.body;
 
     if (!email || !password) {
       return res.status(400).json({
         success: false,
-        message: "Masukkan email dan password",
+        message: "Email dan password wajib diisi",
       });
     }
 
     const hashed = crypto
       .createHash("sha256")
-      .update(password)
+      .update(password.trim())
       .digest("hex");
 
-    const LoginQuery = `
-      SELECT idPengguna, email, displayName, role, PASSWORD 
-      FROM users 
-      WHERE email = ? AND PASSWORD = ?
-    `;
-    const [LoginData] = await dbPromise.execute(LoginQuery, [email, hashed]);
-
-    if (LoginData.length > 0) {
-      const user = LoginData[0];
-
-      const token = jwt.sign(
-        {
-          userId: user.idPengguna,
-          email: user.email,
-          role: user.role,
-        },
-        process.env.JWT_SECRET || "default_secret",
-        { expiresIn: "24h" }
-      );
-
-      return res.status(200).json({
-        success: true,
-        message: "Login berhasil",
-        token,
-        user: {
-          id: user.idPengguna,
-          email: user.email,
-          role: user.role
-        },
-      });
-    }
-
-    return res.status(401).json({
-      success: false,
-      message: "Email atau password salah",
-    });
-  } catch (error) {
-    console.error("Login error:", error);
-    res.status(500).json({
-      success: false,
-      message: "Server error: " + error.message,
-    });
-  }
-};
-
-
-// LOGIN ADMIN (WEB)
-const loginAdmin = async (req, res) => {
-  try {
-    console.log("REQ ADMIN LOGIN:", req.body);
-
-    const { email, password } = req.body;
-
-    if (!email || !password) {
-      return res.status(400).json({
-        success: false,
-        message: "Masukkan email dan password",
-      });
-    }
-
-    // Hash password
-    const hashed = crypto
-      .createHash("sha256")
-      .update(password)
-      .digest("hex");
-
-    // Ambil user role admin
-    const query = `
-      SELECT idPengguna, email, displayName, role, PASSWORD
+    const [rows] = await dbPromise.query(
+      `
+      SELECT idPengguna, email, displayName, role
       FROM users
-      WHERE email = ? AND role = 'admin'
-    `;
-    const [rows] = await dbPromise.query(query, [email]);
+      WHERE email = ?
+        AND PASSWORD = ?
+        AND role = 'appuser'
+      `,
+      [email, hashed]
+    );
 
     if (rows.length === 0) {
       return res.status(401).json({
         success: false,
-        message: "Admin tidak ditemukan atau email tidak terdaftar sebagai admin",
+        message: "Akun mobile tidak ditemukan",
       });
     }
 
-    const admin = rows[0];
+    const user = rows[0];
 
-    // Cocokkan password
-    if (admin.PASSWORD !== hashed) {
-      return res.status(401).json({
-        success: false,
-        message: "Password salah",
-      });
-    }
-
-    // Generate token
     const token = jwt.sign(
       {
-        userId: admin.idPengguna,
-        email: admin.email,
-        role: admin.role,
+        userId: user.idPengguna,
+        role: user.role,
+        platform: "mobile",
       },
       process.env.JWT_SECRET || "default_secret",
       { expiresIn: "24h" }
     );
 
-    return res.status(200).json({
+    res.json({
       success: true,
-      message: "Login admin berhasil",
+      message: "Login mobile berhasil",
       token,
-      user: {
-        id: admin.idPengguna,
-        email: admin.email,
-        role: admin.role,
-        displayName: admin.displayName,
-      },
+      user,
     });
-  } catch (error) {
-    console.error("Login admin error:", error);
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+};
+
+// Login (admin & teknisi - Web) 
+const loginWeb = async (req, res) => {
+  try {
+    console.log("REQ BODY LOGIN WEB:", req.body);
+
+    const { email, password } = req.body;
+
+    if (!email || !password) {
+      console.log("LOGIN WEB ERROR: Email atau password kosong");
+      return res.status(400).json({
+        success: false,
+        message: "Email dan password wajib diisi",
+      });
+    }
+
+    const trimmedPassword = password.trim();
+    const hashed = crypto.createHash("sha256").update(trimmedPassword).digest("hex");
+    console.log("HASHPASSWORD LOGIN WEB:", hashed);
+
+    const query = `
+      SELECT idPengguna, email, displayName, role
+      FROM users
+      WHERE email = ? AND PASSWORD = ? AND role IN ('admin', 'teknisi')
+    `;
+
+    const [rows] = await dbPromise.query(query, [email, hashed]);
+    console.log("ROWS LOGIN WEB:", rows);
+
+    if (rows.length === 0) {
+      console.log("LOGIN WEB FAILED: User tidak ditemukan atau role salah");
+      return res.status(401).json({
+        success: false,
+        message: "Akun tidak memiliki akses web atau email/password salah",
+      });
+    }
+
+    const user = rows[0];
+
+    // generate token
+    const token = jwt.sign(
+      {
+        userId: user.idPengguna,
+        role: user.role,
+        platform: "web",
+      },
+      process.env.JWT_SECRET || "default_secret",
+      { expiresIn: "24h" }
+    );
+
+    console.log("LOGIN WEB SUCCESS: User", user.email, "Role:", user.role);
+
+    res.json({
+      success: true,
+      message: "Login web berhasil",
+      token,
+      user,
+    });
+  } catch (err) {
+    console.error("LOGIN WEB SERVER ERROR:", err);
     res.status(500).json({
       success: false,
-      message: "Server error: " + error.message,
+      message: "Terjadi kesalahan server",
+      error: err.message,
     });
   }
 };
 
 
-// GET PROFILE
+// Get Profile
 const getProfile = async (req, res) => {
   try {
     const userId = req.userId;
 
-    const [results] = await dbPromise.query(
-      "SELECT idPengguna, displayName, email, role FROM users WHERE idPengguna = ?",
+    const [rows] = await dbPromise.query(
+      "SELECT idPengguna, email, displayName, role FROM users WHERE idPengguna = ?",
       [userId]
     );
 
-    if (results.length === 0) {
+    if (rows.length === 0) {
       return res.status(404).json({
         success: false,
-        message: "Pengguna tidak terdaftar",
+        message: "User tidak ditemukan",
       });
     }
 
     res.json({
       success: true,
-      user: results[0],
+      user: rows[0],
     });
-  } catch (error) {
-    console.error("Get profile error:", error);
-    res.status(500).json({
-      success: false,
-      message: "Server error: " + error.message,
-    });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
   }
 };
 
 module.exports = {
   signUp,
-  login,
-  loginAdmin,
+  loginMobile,
+  loginWeb,
   getProfile,
 };

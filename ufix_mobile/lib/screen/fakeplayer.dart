@@ -29,23 +29,56 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
     _checkBookmarkStatus();
   }
 
+  // In your VideoPlayerScreen, when using the thumbnail
+  ImageProvider getThumbnailImageProvider() {
+    if (widget.video.thumbnailPath.isNotEmpty) {
+      return NetworkImage(widget.video.thumbnailPath);
+    }
+    return const AssetImage('assets/images/placeholder_thumbnail.png');
+  }
+
   Future<void> _initializeVideo() async {
     try {
       MediaKit.ensureInitialized();
-      
-      final videoUrl = '${ApiService.baseUrl}/video/watch/${widget.video.idVideo}';
-      print('🎬 Loading video from: $videoUrl');
 
-      _mediaPlayer = Player();
-      _videoController = media_kit.VideoController(_mediaPlayer!);
-      await _mediaPlayer!.open(Media(videoUrl));
+      print('🎬 Requesting stream URL for video ID: ${widget.video.idVideo}');
 
-      // Set loading to false after video starts
-      Future.delayed(const Duration(seconds: 2), () {
-        if (mounted && _isLoading) {
-          setState(() => _isLoading = false);
+      // Get the pre-signed stream URL from API
+      final streamResponse = await ApiService.getVideoStreamUrl(
+        widget.video.idVideo,
+      );
+
+      if (streamResponse['success'] == true) {
+        final videoData = streamResponse['video'];
+        final videoUrl = videoData['videoUrl'];
+
+        print('✅ Got stream URL: $videoUrl');
+        print('Video details: ${videoData['judul']}');
+
+        _mediaPlayer = Player();
+        _videoController = media_kit.VideoController(_mediaPlayer!);
+        await _mediaPlayer!.open(Media(videoUrl));
+
+        // Set loading to false after video starts
+        Future.delayed(const Duration(seconds: 2), () {
+          if (mounted && _isLoading) {
+            setState(() => _isLoading = false);
+          }
+        });
+      } else {
+        print('❌ Failed to get stream URL: ${streamResponse['message']}');
+
+        if (streamResponse['needsLogin'] == true) {
+          await _handleLogout();
         }
-      });
+
+        if (mounted) {
+          setState(() {
+            _isLoading = false;
+            _hasError = true;
+          });
+        }
+      }
     } catch (e) {
       print('💥 Video initialization error: $e');
       if (mounted) {
@@ -108,7 +141,8 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(message),
-          backgroundColor: message.contains('Added') || message.contains('Removed')
+          backgroundColor:
+              message.contains('Added') || message.contains('Removed')
               ? Colors.green
               : Colors.red,
         ),
@@ -169,10 +203,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
           children: [
             CircularProgressIndicator(color: Color(0XFFFF7F00)),
             SizedBox(height: 16),
-            Text(
-              'Loading video...',
-              style: TextStyle(color: Colors.white),
-            ),
+            Text('Loading video...', style: TextStyle(color: Colors.white)),
           ],
         ),
       );
@@ -237,12 +268,8 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
   Widget _buildVideoPlayer() {
     return Stack(
       children: [
-        Positioned.fill(
-          child: media_kit.Video(
-            controller: _videoController!,
-          ),
-        ),
-        
+        Positioned.fill(child: media_kit.Video(controller: _videoController!)),
+
         // Video title overlay
         Positioned(
           left: 16,
@@ -263,7 +290,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
             ),
           ),
         ),
-        
+
         // Comments button
         Positioned(
           right: 16,

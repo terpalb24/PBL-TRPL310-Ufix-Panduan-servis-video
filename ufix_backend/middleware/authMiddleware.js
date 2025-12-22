@@ -22,14 +22,12 @@ const authenticateToken = (req, res, next) => {
     // ✅ FIX: Create req.user object with the properties your controller expects
     req.user = {
       idUser: decoded.userId,    // Controller looks for idUser
-      userId: decoded.userId,
-      idPengguna: decoded.idPengguna,    // Controller also looks for userId
+      userId: decoded.userId,    // Controller also looks for userId
       email: decoded.email,
       role: decoded.role
     };
 
     // Keep these for compatibility if other code uses them
-    req.idPengguna = decoded.idPengguna,
     req.userId = decoded.userId;
     req.userEmail = decoded.email;
     req.userRole = decoded.role;

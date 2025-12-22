@@ -12,6 +12,7 @@ const videoRoutes = require('./routes/videoRoutes');
 const bookmarkRoutes = require('./routes/bookmarkRoutes');
 const commentsRoutes = require('./routes/commentsRoutes');
 const tagRoutes = require('./routes/tagRoutes');
+const historyRoutes = require('./routes/historyRoutes');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -33,6 +34,7 @@ app.use('/api/video', videoRoutes);
 app.use('/api/bookmark', bookmarkRoutes);
 app.use('/api/comments', commentsRoutes);
 app.use('/api/tag', tagRoutes);
+app.use('/api/history', historyRoutes);
 
 // Test route
 app.get('/', (req, res) => {

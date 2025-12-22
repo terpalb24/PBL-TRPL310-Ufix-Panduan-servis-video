@@ -1,3 +1,5 @@
+// Add this import at the top of videoController.js
+const jwt = require('jsonwebtoken'); // <-- ADD THIS LINE
 const fs = require("fs");
 const path = require("path");
 const { dbPromise } = require("../config/database");
@@ -44,11 +46,46 @@ const getVideoNew = async (req, res) => {
   }
 };
 
-const watchVideo = async (req, res) => {
+const streamVideo = async (req, res) => {
   try {
     const videoId = req.params.id;
-    console.log('watchVideo called for video ID:', videoId);
+    const token = req.query.token;
 
+    console.log('streamVideo called for video ID:', videoId);
+    console.log('Token present:', !!token);
+
+    if (!token) {
+      return res.status(401).json({
+        success: false,
+        message: 'Stream token required'
+      });
+    }
+
+    let decoded;
+    try {
+      // Verify the token
+      decoded = jwt.verify(token, process.env.JWT_SECRET);
+      
+      // Check if token is for video streaming
+      if (decoded.type !== 'video_stream') {
+        throw new Error('Invalid token type');
+      }
+      
+      // Check if token is for this video
+      if (decoded.videoId != videoId) {
+        throw new Error('Token video ID mismatch');
+      }
+      
+      console.log('Token verified for user:', decoded.userId);
+    } catch (tokenError) {
+      console.error('Token verification failed:', tokenError.message);
+      return res.status(403).json({
+        success: false,
+        message: 'Invalid or expired stream token'
+      });
+    }
+
+    // Get video details from database
     const query = 'SELECT videoPath, mime_type FROM video WHERE idVideo = ?';
     const [results] = await dbPromise.execute(query, [videoId]);
 
@@ -59,10 +96,122 @@ const watchVideo = async (req, res) => {
       });
     }
 
+    // Add to history if user is authenticated (userId from token)
+    if (decoded.userId) {
+      try {
+        const checkHistoryQuery = 'SELECT * FROM menonton WHERE idVideo = ? AND idPengguna = ?';
+        const [existing] = await dbPromise.execute(checkHistoryQuery, [videoId, decoded.userId]);
+        
+        if (existing.length === 0) {
+          const addIntoHistory = 'INSERT INTO menonton (idVideo, idPengguna, watchedAt) VALUES (?, ?, NOW())';
+          await dbPromise.execute(addIntoHistory, [videoId, decoded.userId]);
+          console.log('Added to history for user:', decoded.userId);
+        } else {
+          const updateHistory = 'UPDATE menonton SET watchedAt = NOW() WHERE idVideo = ? AND idPengguna = ?';
+          await dbPromise.execute(updateHistory, [videoId, decoded.userId]);
+          console.log('Updated history timestamp for user:', decoded.userId);
+        }
+      } catch (historyError) {
+        console.error('Error adding to history:', historyError);
+        // Don't fail video streaming if history fails
+      }
+    }
+
+    // Stream the video (same logic as watchVideo)
     const video = results[0];
     const videoPath = path.join(__dirname, '..', video.videoPath);
 
-    // Check if it actually exists
+    if (!fs.existsSync(videoPath)) {
+      return res.status(404).json({
+        success: false,
+        message: 'Video file not found'
+      });
+    }
+
+    const stat = fs.statSync(videoPath);
+    const fileSize = stat.size;
+    const range = req.headers.range;
+
+    if (range) {
+      const parts = range.replace(/bytes=/, "").split("-");
+      const start = parseInt(parts[0], 10);
+      const end = parts[1] ? parseInt(parts[1], 10) : fileSize - 1;
+      const chunksize = (end - start) + 1;
+
+      const file = fs.createReadStream(videoPath, { start, end });
+      const head = {
+        'Content-Range': `bytes ${start}-${end}/${fileSize}`,
+        'Accept-Ranges': 'bytes',
+        'Content-Length': chunksize,
+        'Content-Type': video.mime_type,
+      };
+
+      res.writeHead(206, head);
+      file.pipe(res);
+    } else {
+      const head = {
+        'Content-Length': fileSize,
+        'Content-Type': video.mime_type,
+      };
+
+      res.writeHead(200, head);
+      fs.createReadStream(videoPath).pipe(res);
+    }
+    
+    console.log('Video streaming started for ID:', videoId);
+  } catch (error) {
+    console.error('Error in streamVideo:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error: ' + error.message
+    });
+  }
+};
+
+const watchVideo = async (req, res) => {
+  try {
+    const videoId = req.params.id;
+    const userId = req.user?.userId || req.user?.idUser;
+
+    console.log('watchVideo called for video ID:', videoId, 'User ID:', userId);
+
+    // First, check if video exists
+    const query = 'SELECT videoPath, mime_type FROM video WHERE idVideo = ?';
+    const [results] = await dbPromise.execute(query, [videoId]);
+
+    if (results.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: 'Video not found'
+      });
+    }
+
+    // Add to history if user is authenticated
+    if (userId) {
+      try {
+        // Check if already in history (avoid duplicates or update timestamp)
+        const checkHistoryQuery = 'SELECT idMenonton FROM menonton WHERE idVideo = ? AND idPengguna = ?';
+        const [existing] = await dbPromise.execute(checkHistoryQuery, [videoId, userId]);
+        
+        if (existing.length === 0) {
+          // Insert new history record
+          const addIntoHistory = 'INSERT INTO menonton (idVideo, idPengguna, watchedAt) VALUES (?, ?, NOW())';
+          await dbPromise.execute(addIntoHistory, [videoId, userId]);
+        } else {
+          // Update timestamp of existing record
+          const updateHistory = 'UPDATE menonton SET watchedAt = NOW() WHERE idVideo = ? AND idPengguna = ?';
+          await dbPromise.execute(updateHistory, [videoId, userId]);
+        }
+      } catch (historyError) {
+        console.error('Error adding to history:', historyError);
+        // Don't fail the video streaming if history recording fails
+      }
+    }
+
+    const video = results[0];
+    const videoPath = path.join(__dirname, '..', video.videoPath);
+
+    // Check if file exists
     if (!fs.existsSync(videoPath)) {
       return res.status(404).json({
         success: false,
@@ -113,8 +262,11 @@ const watchVideo = async (req, res) => {
 const getVideoUrl = async (req, res) => {
   try {
     const videoId = req.params.id;
-    console.log('getVideoUrl called for video ID:', videoId);
+    const userId = req.user?.userId || req.user?.idUser;
 
+    console.log('getVideoUrl called for video ID:', videoId, 'User ID:', userId);
+
+    // Check if video exists
     const query = 'SELECT idVideo, title, videoPath FROM video WHERE idVideo = ?';
     const [results] = await dbPromise.execute(query, [videoId]);
 
@@ -126,14 +278,31 @@ const getVideoUrl = async (req, res) => {
     }
 
     const video = results[0];
-    console.log('Found video:', video);
+    
+    // Generate a short-lived token for video streaming (valid for 1 hour)
+    const streamToken = jwt.sign(
+      { 
+        videoId: video.idVideo,
+        userId: userId || null, // Include userId if authenticated, null if not
+        type: 'video_stream',
+        timestamp: Date.now()
+      }, 
+      process.env.JWT_SECRET, 
+      { expiresIn: '1h' }
+    );
+
+    // Create the pre-signed URL
+    const streamUrl = `http://${req.get('host')}/api/video/stream/${video.idVideo}?token=${streamToken}`;
+    
+    console.log('Generated stream URL for video:', video.idVideo);
     
     res.json({
       success: true,
       video: {
         id: video.idVideo,
         judul: video.title,
-        videoUrl: `http://${req.get('host')}/api/video/watch/${video.idVideo}`,
+        videoUrl: streamUrl, // Return the pre-signed URL instead
+        requiresAuth: false, // Let Flutter know this URL doesn't need auth headers
       }
     });
   } catch (error) {
@@ -392,4 +561,13 @@ const getAllVideos = async (req, res) => {
   }
 };
 
-module.exports = { getVideoNew, watchVideo, getVideoUrl, addVideo, updateVideo, deleteVideo, getAllVideos };
+module.exports = { 
+  getVideoNew, 
+  getVideoUrl,       // Modified to return pre-signed URLs
+  streamVideo,       // New function for pre-signed URL streaming
+  watchVideo,        // Keep for backward compatibility
+  addVideo, 
+  updateVideo, 
+  deleteVideo, 
+  getAllVideos 
+};

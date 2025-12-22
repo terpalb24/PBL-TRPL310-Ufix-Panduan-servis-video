@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:ufix_mobile/services/api_service.dart';
 import 'package:ufix_mobile/services/storage_service.dart';
+import 'package:ufix_mobile/models/video_model.dart';
+import 'package:ufix_mobile/screen/fakeplayer.dart';
 
 class Bookmark extends StatefulWidget {
   const Bookmark({super.key});
@@ -79,6 +81,27 @@ class _BookmarkState extends State<Bookmark> {
         );
       }
     }
+  }
+
+  // Add this navigation method
+  void _navigateToVideoPlayerFromBookmark(Map<String, dynamic> bookmark) {
+    // Create a Video object from bookmark data
+    final video = Video(
+      idVideo: bookmark['idVideo'] ?? 0,
+      title: bookmark['title'] ?? 'No Title',
+      videoPath: bookmark['videoPath'] ?? '',
+      thumbnailPath: bookmark['thumbnailPath'] ?? '',
+      uploader: bookmark['uploader'] ?? 0,
+      durationSec: bookmark['duration'] ?? 0,
+      sentDate: bookmark['sentDate'] != null 
+          ? DateTime.tryParse(bookmark['sentDate'].toString()) 
+          : null,
+      // Add other fields your Video model requires
+    );
+    
+    Navigator.pushNamed(
+      context, '/player', arguments: video
+    );
   }
 
   List<Map<String, dynamic>> get _filteredBookmarks {
@@ -221,9 +244,16 @@ class _BookmarkState extends State<Bookmark> {
                               itemCount: _filteredBookmarks.length,
                               itemBuilder: (context, index) {
                                 final bookmark = _filteredBookmarks[index];
-                                return _BookmarkItem(
-                                  bookmark: bookmark,
-                                  onRemove: () => _removeBookmark(bookmark['idVideo']),
+                                
+                                // Wrap with GestureDetector to make it clickable
+                                return GestureDetector(
+                                  onTap: () {
+                                    _navigateToVideoPlayerFromBookmark(bookmark);
+                                  },
+                                  child: _BookmarkItem(
+                                    bookmark: bookmark,
+                                    onRemove: () => _removeBookmark(bookmark['idVideo']),
+                                  ),
                                 );
                               },
                             ),
@@ -238,10 +268,12 @@ class _BookmarkState extends State<Bookmark> {
 class _BookmarkItem extends StatelessWidget {
   final Map<String, dynamic> bookmark;
   final VoidCallback onRemove;
+  final VoidCallback? onTap; // Add this parameter for click handling
 
   const _BookmarkItem({
     required this.bookmark,
     required this.onRemove,
+    this.onTap, // Make it optional
   });
 
   String _getImageUrl(String? path) {
@@ -258,7 +290,8 @@ class _BookmarkItem extends StatelessWidget {
     final date = bookmark['sentDate'] ?? '';
     final imageUrl = _getImageUrl(bookmark['thumbnailPath']);
 
-    return Container(
+    // Create the main content widget
+    Widget content = Container(
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(16),
@@ -353,5 +386,15 @@ class _BookmarkItem extends StatelessWidget {
         ],
       ),
     );
+
+    // Wrap with GestureDetector if onTap is provided
+    if (onTap != null) {
+      return GestureDetector(
+        onTap: onTap,
+        child: content,
+      );
+    } else {
+      return content;
+    }
   }
 }

@@ -91,8 +91,8 @@ class _BookmarkState extends State<Bookmark> {
       title: bookmark['title'] ?? 'No Title',
       videoPath: bookmark['videoPath'] ?? '',
       thumbnailPath: bookmark['thumbnailPath'] ?? '',
-      uploader: bookmark['uploader'] ?? 0,
-      durationSec: bookmark['duration'] ?? 0,
+      mimeType: bookmark['mimeType'] ?? "",
+      deskripsi: bookmark['deskripsi'] ?? "",
       sentDate: bookmark['sentDate'] != null 
           ? DateTime.tryParse(bookmark['sentDate'].toString()) 
           : null,

@@ -5,6 +5,7 @@ import 'package:ufix_mobile/models/video_model.dart';
 import 'package:ufix_mobile/screen/comments.dart';
 import 'package:ufix_mobile/services/api_service.dart';
 import 'package:ufix_mobile/services/storage_service.dart';
+import 'package:ufix_mobile/screen/description.dart'; // Add this import
 
 class VideoPlayerScreen extends StatefulWidget {
   final Video video;
@@ -21,12 +22,28 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
   bool _hasError = false;
   bool _isBookmarked = false;
   bool _bookmarkBusy = false;
+  String? _videoDescription; // Store the video deskripsi
 
   @override
   void initState() {
     super.initState();
     _initializeVideo();
     _checkBookmarkStatus();
+    _loadVideoDescription(); // Load deskripsi when screen initializes
+  }
+
+  Future<void> _loadVideoDescription() async {
+    try {
+      final result = await ApiService.getVideoDescription(widget.video.idVideo);
+      if (result['success'] == true) {
+        setState(() {
+          _videoDescription = result['video']['deskripsi'];
+        });
+      }
+    } catch (e) {
+      print('Error loading video deskripsi: $e');
+      // Don't show error for deskripsi, just leave it null
+    }
   }
 
   // In your VideoPlayerScreen, when using the thumbnail
@@ -143,11 +160,23 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
           content: Text(message),
           backgroundColor:
               message.contains('Added') || message.contains('Removed')
-              ? Colors.green
-              : Colors.red,
+                  ? Colors.green
+                  : Colors.red,
         ),
       );
     }
+  }
+
+  void _navigateToDescription() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => VideoDescriptionScreen(
+          videoId: widget.video.idVideo,
+          videoTitle: widget.video.title,
+        ),
+      ),
+    );
   }
 
   @override
@@ -173,6 +202,12 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
           onPressed: () => Navigator.pop(context),
         ),
         actions: [
+          // Description button
+          IconButton(
+            onPressed: _navigateToDescription,
+            icon: const Icon(Icons.description),
+            tooltip: 'View Description',
+          ),
           IconButton(
             onPressed: _bookmarkBusy ? null : _toggleBookmark,
             icon: _bookmarkBusy
@@ -188,6 +223,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
                     _isBookmarked ? Icons.bookmark : Icons.bookmark_border,
                     color: Colors.white,
                   ),
+            tooltip: _isBookmarked ? 'Remove Bookmark' : 'Add Bookmark',
           ),
         ],
       ),
@@ -280,16 +316,73 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
               color: Colors.black.withOpacity(0.7),
               borderRadius: BorderRadius.circular(12),
             ),
-            child: Text(
-              widget.video.title,
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-              ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  widget.video.title,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                if (_videoDescription != null &&
+                    _videoDescription!.isNotEmpty)
+                  Container(
+                    margin: const EdgeInsets.only(top: 8),
+                    child: Text(
+                      _videoDescription!.length > 100
+                          ? '${_videoDescription!.substring(0, 100)}...'
+                          : _videoDescription!,
+                      style: const TextStyle(
+                        color: Colors.white70,
+                        fontSize: 12,
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+              ],
             ),
           ),
         ),
+
+        // Show more deskripsi button
+        if (_videoDescription != null && _videoDescription!.isNotEmpty)
+          Positioned(
+            left: 16,
+            top: 100, // Adjust position based on your layout
+            child: GestureDetector(
+              onTap: _navigateToDescription,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                decoration: BoxDecoration(
+                  color: const Color(0XFFFF7F00).withOpacity(0.8),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: const Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      'View Full Description',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    SizedBox(width: 4),
+                    Icon(
+                      Icons.arrow_forward,
+                      size: 14,
+                      color: Colors.white,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
 
         // Comments button
         Positioned(
@@ -302,6 +395,19 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
             onPressed: () {
               _navigateToComments();
             },
+          ),
+        ),
+
+        // Quick deskripsi button
+        Positioned(
+          right: 16,
+          bottom: 80,
+          child: FloatingActionButton(
+            heroTag: 'deskripsi_btn',
+            backgroundColor: const Color(0xFF3A567A),
+            mini: true,
+            child: const Icon(Icons.description),
+            onPressed: _navigateToDescription,
           ),
         ),
       ],

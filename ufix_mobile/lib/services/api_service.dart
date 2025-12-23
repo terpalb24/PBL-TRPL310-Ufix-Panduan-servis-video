@@ -380,4 +380,34 @@ class ApiService {
       return {'success': false, 'message': 'Network error: $e'};
     }
   }
+
+  // In ApiService.dart, add this method:
+  static Future<Map<String, dynamic>> getVideoDescription(int videoId) async {
+    try {
+      final headers = await getHeaders();
+
+      final response = await http.get(
+        Uri.parse('$baseUrl/video/deskripsi/$videoId'),
+        headers: headers,
+      );
+
+      if (response.statusCode == 200) {
+        return json.decode(response.body);
+      } else if (response.statusCode == 401) {
+        await StorageService.clearToken();
+        return {
+          'success': false,
+          'message': 'Session expired. Please login again.',
+          'needsLogin': true,
+        };
+      } else {
+        return {
+          'success': false,
+          'message': 'Failed to get video deskripsi: ${response.statusCode}',
+        };
+      }
+    } catch (e) {
+      return {'success': false, 'message': 'Network error: $e'};
+    }
+  }
 }

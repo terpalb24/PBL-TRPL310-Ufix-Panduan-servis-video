@@ -9,6 +9,7 @@ class HistoryVideo {
   final String? mimeType;
   final DateTime watchedAt;
   final DateTime? sentDate;
+  final String deskripsi;
 
   HistoryVideo({
     required this.idVideo,
@@ -18,6 +19,7 @@ class HistoryVideo {
     this.mimeType,
     required this.watchedAt,
     this.sentDate,
+    required this.deskripsi
   });
 
   factory HistoryVideo.fromJson(Map<String, dynamic> json) {
@@ -33,6 +35,7 @@ class HistoryVideo {
       sentDate: json['sentDate'] != null 
           ? DateTime.parse(json['sentDate'].toString()) 
           : null,
+      deskripsi: json['deskripsi'] ?? ""
     );
   }
 
@@ -45,6 +48,7 @@ class HistoryVideo {
       thumbnailPath: thumbnailPath ?? '', // Default to empty string
       mimeType: mimeType ?? 'video/mp4', // Default mime type
       sentDate: sentDate,
+      deskripsi: deskripsi
     );
   }
 

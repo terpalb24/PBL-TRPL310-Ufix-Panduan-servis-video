@@ -1,10 +1,8 @@
 // Add this import at the top of videoController.js
-const jwt = require('jsonwebtoken'); // <-- ADD THIS LINE
+const jwt = require('jsonwebtoken');
 const fs = require("fs");
 const path = require("path");
 const { dbPromise } = require("../config/database");
-// Note: Remove the import of videoUploadPath and thumbnailUploadPath from uploadConfig
-// since they're not used in this file
 
 const getVideoNew = async (req, res) => {
   console.log('=== getVideoNew called ===');
@@ -23,8 +21,9 @@ const getVideoNew = async (req, res) => {
     
     // If that works, try the full query
     console.log('Testing full query...');
+    // UPDATED: Include deskripsi in the query
     const [videos] = await dbPromise.execute(`
-      SELECT idVideo, title 
+      SELECT idVideo, title, deskripsi 
       FROM video 
       LIMIT 5
     `);
@@ -176,7 +175,7 @@ const watchVideo = async (req, res) => {
     console.log('watchVideo called for video ID:', videoId, 'User ID:', userId);
 
     // First, check if video exists
-    const query = 'SELECT videoPath, mime_type FROM video WHERE idVideo = ?';
+    const query = 'SELECT videoPath, mime_type, deskripsi FROM video WHERE idVideo = ?';
     const [results] = await dbPromise.execute(query, [videoId]);
 
     if (results.length === 0) {
@@ -266,8 +265,8 @@ const getVideoUrl = async (req, res) => {
 
     console.log('getVideoUrl called for video ID:', videoId, 'User ID:', userId);
 
-    // Check if video exists
-    const query = 'SELECT idVideo, title, videoPath FROM video WHERE idVideo = ?';
+    // Check if video exists - UPDATED: Include deskripsi in the query
+    const query = 'SELECT idVideo, title, videoPath, deskripsi FROM video WHERE idVideo = ?';
     const [results] = await dbPromise.execute(query, [videoId]);
 
     if (results.length === 0) {
@@ -301,6 +300,7 @@ const getVideoUrl = async (req, res) => {
       video: {
         id: video.idVideo,
         judul: video.title,
+        deskripsi: video.deskripsi || '', // Return deskripsi
         videoUrl: streamUrl, // Return the pre-signed URL instead
         requiresAuth: false, // Let Flutter know this URL doesn't need auth headers
       }
@@ -314,9 +314,45 @@ const getVideoUrl = async (req, res) => {
   }
 };
 
+// NEW: Get video deskripsi by ID
+const getVideodeskripsi = async (req, res) => {
+  try {
+    const videoId = req.params.id;
+    console.log('getVideodeskripsi called for video ID:', videoId);
+
+    // Get video deskripsi
+    const query = 'SELECT idVideo, title, deskripsi FROM video WHERE idVideo = ?';
+    const [results] = await dbPromise.execute(query, [videoId]);
+
+    if (results.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: 'Video not found'
+      });
+    }
+
+    const video = results[0];
+    
+    res.json({
+      success: true,
+      video: {
+        id: video.idVideo,
+        title: video.title,
+        deskripsi: video.deskripsi || 'No deskripsi available'
+      }
+    });
+  } catch (error) {
+    console.error('Error in getVideodeskripsi:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error: ' + error.message
+    });
+  }
+};
+
 const addVideo = async (req, res) => {
   try {
-    const { title } = req.body;
+    const { title, deskripsi } = req.body; // UPDATED: Get deskripsi from request body
     const videoFile = req.files['video'] ? req.files['video'][0] : null;
     const thumbnailFile = req.files['thumbnail'] ? req.files['thumbnail'][0] : null;
 
@@ -344,12 +380,13 @@ const addVideo = async (req, res) => {
     const thumbnailPath = thumbnailFile ? path.relative(process.cwd(), thumbnailFile.path) : null;
     const mime_type = videoFile.mimetype;
 
+    // UPDATED: Include deskripsi in the INSERT query
     const query = `
-      INSERT INTO video (title, thumbnailPath, videoPath, mime_type, sentDate)
-      VALUES (?, ?, ?, ?, NOW())
+      INSERT INTO video (title, deskripsi, thumbnailPath, videoPath, mime_type, sentDate)
+      VALUES (?, ?, ?, ?, ?, NOW())
     `;
 
-    await dbPromise.execute(query, [title, thumbnailPath, videoPath, mime_type]);
+    await dbPromise.execute(query, [title, deskripsi || null, thumbnailPath, videoPath, mime_type]);
 
     // Get the inserted video ID
     const [result] = await dbPromise.execute('SELECT LAST_INSERT_ID() as id');
@@ -389,7 +426,7 @@ const addVideo = async (req, res) => {
 const updateVideo = async (req, res) => {
   try {
     const id = req.params.id;
-    const { title } = req.body;
+    const { title, deskripsi } = req.body; // UPDATED: Get deskripsi from request body
     const videoFile = req.files['video'] ? req.files['video'][0] : null;
     const thumbnailFile = req.files['thumbnail'] ? req.files['thumbnail'][0] : null;
 
@@ -434,8 +471,8 @@ const updateVideo = async (req, res) => {
     }
 
     // Prepare update query based on what's being updated
-    let query = 'UPDATE video SET title = ?';
-    const params = [title];
+    let query = 'UPDATE video SET title = ?, deskripsi = ?'; // UPDATED: Include deskripsi
+    const params = [title, deskripsi || null];
 
     if (videoFile) {
       query += ', videoPath = ?, mime_type = ?';
@@ -536,12 +573,14 @@ const deleteVideo = async (req, res) => {
 // Helper function to get all videos (optional)
 const getAllVideos = async (req, res) => {
   try {
-    const query = 'SELECT idVideo, title, thumbnailPath, videoPath, mime_type, sentDate FROM video ORDER BY sentDate DESC';
+    // UPDATED: Include deskripsi in the SELECT query
+    const query = 'SELECT idVideo, title, deskripsi, thumbnailPath, videoPath, mime_type, sentDate FROM video ORDER BY sentDate DESC';
     const [videos] = await dbPromise.execute(query);
 
     const videosWithUrls = videos.map(video => ({
       id: video.idVideo,
       title: video.title,
+      deskripsi: video.deskripsi || '', // Include deskripsi
       thumbnailUrl: video.thumbnailPath ? `http://${req.get('host')}/${video.thumbnailPath}` : null,
       videoUrl: `http://${req.get('host')}/api/video/watch/${video.idVideo}`,
       mime_type: video.mime_type,
@@ -563,9 +602,10 @@ const getAllVideos = async (req, res) => {
 
 module.exports = { 
   getVideoNew, 
-  getVideoUrl,       // Modified to return pre-signed URLs
-  streamVideo,       // New function for pre-signed URL streaming
-  watchVideo,        // Keep for backward compatibility
+  getVideoUrl,       
+  streamVideo,       
+  watchVideo,        
+  getVideodeskripsi, // NEW: Export the new function
   addVideo, 
   updateVideo, 
   deleteVideo, 

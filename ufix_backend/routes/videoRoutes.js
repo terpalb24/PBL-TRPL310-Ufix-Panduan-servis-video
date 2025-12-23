@@ -1,9 +1,11 @@
+// routes/videoRoutes.js
 const express = require('express');
 const { 
   getVideoNew, 
   getVideoUrl, 
-  streamVideo,    // Add this import
-  watchVideo, 
+  streamVideo,    
+  watchVideo,
+  getVideodeskripsi, // Add this import
   addVideo, 
   updateVideo, 
   deleteVideo 
@@ -19,17 +21,13 @@ router.use((req, res, next) => {
 });
 
 router.get('/new', getVideoNew);
-
-// This endpoint requires auth and returns a pre-signed URL
 router.get('/url/:id', authenticateToken, getVideoUrl);
-
-// New endpoint for pre-signed URL streaming (no auth middleware required)
 router.get('/stream/:id', streamVideo);
-
-// Keep the old watch endpoint for backward compatibility
 router.get('/watch/:id', authenticateToken, watchVideo);
 
-// Use uploadConfig.fields()
+// NEW: Add route for getting video deskripsi
+router.get('/deskripsi/:id', authenticateToken, getVideodeskripsi);
+
 router.post('/video', uploadConfig.upload.fields([
   { name: 'video', maxCount: 1 },
   { name: 'thumbnail', maxCount: 1 }

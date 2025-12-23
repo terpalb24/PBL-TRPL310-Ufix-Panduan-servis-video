@@ -429,24 +429,6 @@ class _HomepageState extends State<Homepage> {
                   overflow: TextOverflow.ellipsis,
                 ),
                 Text(
-                  _getUploaderText(video.uploader),
-                  style: TextStyle(
-                    color: Colors.black,
-                    fontSize: 12,
-                    fontFamily: 'Jost',
-                    fontWeight: FontWeight.w300,
-                  ),
-                ),
-                Text(
-                  _formatDuration(video.durationSec),
-                  style: TextStyle(
-                    color: Colors.black,
-                    fontSize: 10,
-                    fontFamily: 'Jost',
-                    fontWeight: FontWeight.w300,
-                  ),
-                ),
-                Text(
                   _formatDate(video.sentDate),
                   style: TextStyle(
                     color: Colors.black,

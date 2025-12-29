@@ -1,4 +1,3 @@
-// lib/controllers/authController.js
 const db = require("../config/database");
 const crypto = require("crypto");
 const jwt = require("jsonwebtoken");

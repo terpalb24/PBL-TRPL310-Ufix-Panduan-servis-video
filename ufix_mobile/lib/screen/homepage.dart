@@ -131,29 +131,6 @@ class _HomepageState extends State<Homepage> {
       ),
       body: Column(
         children: [
-          // DEBUG BANNER - This will show what's happening
-          Container(
-            width: double.infinity,
-            padding: EdgeInsets.all(8),
-            color: Colors.orange,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'DEBUG INFO:',
-                  style: TextStyle(fontWeight: FontWeight.bold, color: Colors.black),
-                ),
-                Text(
-                  _debugInfo,
-                  style: TextStyle(color: Colors.black, fontSize: 12),
-                ),
-                Text(
-                  'Videos loaded: ${_videos.length}, Loading: $_isLoading, Error: $_error',
-                  style: TextStyle(color: Colors.black, fontSize: 10),
-                ),
-              ],
-            ),
-          ),
           Expanded(
             child: Stack(
               children: [

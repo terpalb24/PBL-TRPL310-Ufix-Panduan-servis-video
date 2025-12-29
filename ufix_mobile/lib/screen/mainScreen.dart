@@ -170,45 +170,6 @@ class _FrontScreenState extends State<FrontScreen> {
 
     return Scaffold(
       resizeToAvoidBottomInset: true,
-      appBar: AppBar(
-        title: Text(
-          'U-Fix',
-          style: TextStyle(
-            fontFamily: 'Kodchasan',
-            fontWeight: FontWeight.w600,
-            color: Color(0xFF3A567A),
-          ),
-        ),
-        backgroundColor: Color(0xFFF7F7FA),
-        elevation: 0,
-        actions: [
-          if (_userDisplayName != null)
-            Padding(
-              padding: const EdgeInsets.only(right: 16.0),
-              child: Row(
-                children: [
-                  Icon(
-                    Icons.person_outline,
-                    color: Color(0xFF3A567A),
-                  ),
-                  SizedBox(width: 8),
-                  Text(
-                    _userDisplayName!,
-                    style: TextStyle(
-                      color: Color(0xFF3A567A),
-                      fontFamily: 'Jost',
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          IconButton(
-            icon: Icon(Icons.logout),
-            color: Color(0xFF3A567A),
-            onPressed: _logout,
-          ),
-        ],
-      ),
       body: _pages[_selectedIndex],
       bottomNavigationBar: BottomNavigationBar(
         backgroundColor: Color(0xFFF7F7FA),

@@ -1,26 +1,43 @@
+// routes/videoRoutes.js
 const express = require('express');
-const { upload } = require('../controllers/uploadConfig');
-const { getVideoNew, getVideoUrl, watchVideo, addVideo, updateVideo, deleteVideo } = require('../controllers/videoController');
-
+const { 
+  getVideoNew, 
+  getVideoUrl, 
+  streamVideo,    
+  watchVideo,
+  getVideodeskripsi, // Add this import
+  addVideo, 
+  updateVideo, 
+  deleteVideo 
+} = require('../controllers/videoController');
+const { authenticateToken } = require('../middleware/authMiddleware');
+const uploadConfig = require('../controllers/uploadConfig');
 const router = express.Router();
 
+// Log all video API requests (for debugging)
+router.use((req, res, next) => {
+  console.log(`[VIDEO API] ${req.method} ${req.originalUrl}`);
+  next();
+});
+
 router.get('/new', getVideoNew);
-router.get('/url/:id', getVideoUrl);
-router.get('/watch/:id', watchVideo);
-// For adding new video with file upload
-router.post('/video', upload.fields([
+router.get('/url/:id', authenticateToken, getVideoUrl);
+router.get('/stream/:id', streamVideo);
+router.get('/watch/:id', authenticateToken, watchVideo);
+
+// NEW: Add route for getting video deskripsi
+router.get('/deskripsi/:id', authenticateToken, getVideodeskripsi);
+
+router.post('/video', uploadConfig.upload.fields([
   { name: 'video', maxCount: 1 },
   { name: 'thumbnail', maxCount: 1 }
 ]), addVideo);
 
-// For updating video with optional file upload
-router.put('/video/:id', upload.fields([
+router.put('/video/:id', uploadConfig.upload.fields([
   { name: 'video', maxCount: 1 },
   { name: 'thumbnail', maxCount: 1 }
 ]), updateVideo);
 
-// Other routes remain the same
 router.delete('/video/:id', deleteVideo);
-
 
 module.exports = router;

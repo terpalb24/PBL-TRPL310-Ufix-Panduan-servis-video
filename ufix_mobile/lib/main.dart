@@ -10,7 +10,7 @@ import 'screen/welcome_unlogged.dart';
 import 'screen/welcome_loggedin.dart';
 import 'screen/login.dart';
 import 'screen/signup.dart';
-import 'screen/mainScreen.dart';
+import 'screen/main_screen.dart';
 import 'screen/history.dart';
 import 'screen/profile.dart';
 import 'screen/fakeplayer.dart';

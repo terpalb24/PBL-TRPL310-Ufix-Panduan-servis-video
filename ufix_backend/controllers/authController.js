@@ -1,3 +1,4 @@
+const db = require("../config/database");
 const crypto = require("crypto");
 const jwt = require("jsonwebtoken");
 const { dbPromise } = require("../config/database");

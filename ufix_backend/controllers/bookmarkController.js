@@ -1,31 +1,17 @@
 const { dbPromise } = require("../config/database");
-const jwt = require("jsonwebtoken");
 
 const getBookmark = async (req, res) => {
   try {
-    // Pastikan Anda mendapatkan user ID dengan cara yang benar
-    // Biasanya dari req.user (setelah authentication middleware)
-    const idUser = req.user?.idUser || req.user?.userId;
+    const userId = req.user?.idPengguna || req.user?.userId || req.user?.idUser;
     
-    if (!idUser) {
+    if (!userId) {
       return res.status(401).json({
         success: false,
-        message: "User tidak terautentikasi",
+        message: "Unauthorized",
       });
     }
 
-    // Konversi ke integer jika perlu
-    const userId = parseInt(idUser);
-    
-    if (isNaN(userId)) {
-      return res.status(400).json({
-        success: false,
-        message: "ID user tidak valid",
-      });
-    }
-
-    // Perbaikan query: Hapus koma tambahan setelah "b,"
-    const showBookmarkQuery = `
+    const query = `
       SELECT 
         b.idBookmark, 
         v.idVideo, 
@@ -33,216 +19,126 @@ const getBookmark = async (req, res) => {
         v.sentDate, 
         v.videoPath, 
         v.thumbnailPath,
-        v.description,
-        v.duration,
-        v.viewCount
+        v.durationSec,
+        u.displayName as uploaderName
       FROM bookmark b
       JOIN video v ON b.idVideo = v.idVideo 
-      WHERE b.idUser = ?
-      ORDER BY b.createdAt DESC
+      JOIN users u ON v.uploader = u.idPengguna
+      WHERE b.idPengguna = ?
     `;
     
-    const [videoBookmark] = await dbPromise.query(showBookmarkQuery, [userId]);
-
-    // Jika tidak ada bookmark, tetap return success dengan array kosong
-    // (bukan error 404, karena ini kondisi normal)
-    if (videoBookmark.length === 0) {
-      return res.json({
-        success: true,
-        message: "Belum ada bookmark",
-        count: 0,
-        bookmark: [],
-      });
-    }
+    const [bookmarks] = await dbPromise.query(query, [userId]);
 
     res.json({
       success: true,
-      count: videoBookmark.length,
-      message: "Bookmark berhasil diambil",
-      bookmark: videoBookmark,
+      count: bookmarks.length,
+      bookmarks: bookmarks,
     });
     
   } catch (error) {
-    console.error("Error fetching bookmarks:", error);
+    console.error("Bookmark error:", error);
     res.status(500).json({
       success: false,
-      message: "Server error: " + error.message,
+      message: "Server error",
     });
   }
 };
 
 const addBookmark = async (req, res) => {
   try {
-    // 1. Validasi input
-    const idVideo = parseInt(req.params.id);
-    const idUser = req.user?.idUser || req.user?.userId;
+    const videoId = parseInt(req.params.id);
+    const userId = req.user?.idPengguna || req.user?.userId || req.user?.idUser;
 
-    // Validasi idVideo
-    if (!idVideo || isNaN(idVideo) || idVideo <= 0) {
-      return res.status(400).json({ // 400 bukan 402
-        success: false,
-        message: "ID video tidak valid",
-      });
-    }
-
-    // Validasi user
-    if (!idUser) {
-      return res.status(401).json({
-        success: false,
-        message: "User tidak terautentikasi",
-      });
-    }
-
-    const userId = parseInt(idUser);
-    if (isNaN(userId) || userId <= 0) {
+    if (!videoId || !userId) {
       return res.status(400).json({
         success: false,
-        message: "ID user tidak valid",
+        message: "Invalid request",
       });
     }
 
-    // 2. Cek apakah video ada
-    const checkVideoQuery = 'SELECT idVideo FROM video WHERE idVideo = ?';
-    const [videoExists] = await dbPromise.query(checkVideoQuery, [idVideo]);
+    // Check if video exists
+    const [video] = await dbPromise.query(
+      'SELECT idVideo FROM video WHERE idVideo = ?',
+      [videoId]
+    );
     
-    if (videoExists.length === 0) {
+    if (!video.length) {
       return res.status(404).json({
         success: false,
-        message: "Video tidak ditemukan",
+        message: "Video not found",
       });
     }
 
-    // 3. Cek apakah bookmark sudah ada (prevent duplicate)
-    const checkBookmarkQuery = 'SELECT idBookmark FROM bookmark WHERE idVideo = ? AND idUser = ?';
-    const [existingBookmark] = await dbPromise.query(checkBookmarkQuery, [idVideo, userId]);
+    // Check if already bookmarked
+    const [exists] = await dbPromise.query(
+      'SELECT idBookmark FROM bookmark WHERE idVideo = ? AND idPengguna = ?',
+      [videoId, userId]
+    );
     
-    if (existingBookmark.length > 0) {
-      return res.status(409).json({ // 409 Conflict
-        success: false,
-        message: "Video sudah ada di bookmark",
+    if (exists.length > 0) {
+      return res.status(200).json({
+        success: true,
+        message: "Already bookmarked",
       });
     }
 
-    // 4. Tambahkan bookmark
-    const addBookmarkQuery = 'INSERT INTO bookmark (idVideo, idUser) VALUES (?, ?)';
-    const [result] = await dbPromise.query(addBookmarkQuery, [idVideo, userId]);
+    // Add bookmark
+    const [result] = await dbPromise.query(
+      'INSERT INTO bookmark (idVideo, idPengguna) VALUES (?, ?)',
+      [videoId, userId]
+    );
 
-    // 5. Response dengan data yang lebih informatif
-    res.status(201).json({ // 201 Created
+    res.status(201).json({
       success: true,
-      message: "Bookmark berhasil ditambahkan",
-      data: {
-        bookmarkId: result.insertId,
-        idVideo: idVideo,
-        idUser: userId
-      }
+      message: "Bookmark added",
+      bookmarkId: result.insertId,
     });
 
   } catch (error) {
-    console.error("Error adding bookmark:", error);
-    
-    // Handle specific database errors
-    if (error.code === 'ER_DUP_ENTRY') {
-      return res.status(409).json({
-        success: false,
-        message: "Bookmark sudah ada",
-      });
-    }
-    
-    if (error.code === 'ER_NO_REFERENCED_ROW_2') {
-      return res.status(404).json({
-        success: false,
-        message: "Video atau user tidak ditemukan",
-      });
-    }
-    
+    console.error("Add bookmark error:", error);
     res.status(500).json({
       success: false,
-      message: "Server error: " + error.message,
+      message: "Failed to add bookmark",
     });
   }
 };
-
 
 const deleteBookmark = async (req, res) => {
   try {
-    // 1. Validasi input
-    const idVideo = parseInt(req.params.id);
-    const idUser = req.user?.idUser || req.user?.userId;
+    const videoId = parseInt(req.params.id);
+    const userId = req.user?.idPengguna || req.user?.userId || req.user?.idUser;
 
-    // Validasi idVideo
-    if (!idVideo || isNaN(idVideo) || idVideo <= 0) {
+    if (!videoId || !userId) {
       return res.status(400).json({
         success: false,
-        message: "ID video tidak valid",
+        message: "Invalid request",
       });
     }
 
-    // Validasi user
-    if (!idUser) {
-      return res.status(401).json({
-        success: false,
-        message: "User tidak terautentikasi",
-      });
-    }
+    const [result] = await dbPromise.query(
+      'DELETE FROM bookmark WHERE idVideo = ? AND idPengguna = ?',
+      [videoId, userId]
+    );
 
-    const userId = parseInt(idUser);
-    if (isNaN(userId) || userId <= 0) {
-      return res.status(400).json({
-        success: false,
-        message: "ID user tidak valid",
-      });
-    }
-
-    // 2. Cek apakah bookmark ada
-    const checkBookmarkQuery = 'SELECT b.idBookmark, v.title FROM bookmark b JOIN video v ON b.idVideo = v.idVideo WHERE b.idVideo = ? AND b.idUser = ?';
-    const [existingBookmark] = await dbPromise.query(checkBookmarkQuery, [idVideo, userId]);
-    
-    if (existingBookmark.length === 0) {
-      return res.status(404).json({ // 404 Not Found (bukan 409 Conflict)
-        success: false,
-        message: "Video tidak ada di bookmark Anda",
-      });
-    }
-
-    // 3. Hapus bookmark
-    const deleteBookmarkQuery = 'DELETE FROM bookmark WHERE idVideo = ? AND idUser = ?'; // Hapus "*"
-    const [result] = await dbPromise.query(deleteBookmarkQuery, [idVideo, userId]);
-
-    // 4. Cek apakah berhasil dihapus
     if (result.affectedRows === 0) {
       return res.status(404).json({
         success: false,
-        message: "Gagal menghapus bookmark",
+        message: "Bookmark not found",
       });
     }
 
-    // 5. Response sukses
     res.json({
       success: true,
-      message: `"${existingBookmark[0].title}" berhasil dihapus dari bookmark`,
-      data: {
-        deletedRows: result.affectedRows,
-        videoId: idVideo,
-        videoTitle: existingBookmark[0].title
-      }
+      message: "Bookmark removed",
     });
 
   } catch (error) {
-    console.error("Error deleting bookmark:", error);
-    
-    // Handle specific database errors
-    if (error.code === 'ER_NO_REFERENCED_ROW') {
-      return res.status(400).json({
-        success: false,
-        message: "Data referensi tidak valid",
-      });
-    }
-    
+    console.error("Delete bookmark error:", error);
     res.status(500).json({
       success: false,
-      message: "Server error: " + error.message,
+      message: "Failed to remove bookmark",
     });
   }
 };
+
 module.exports = { getBookmark, addBookmark, deleteBookmark };

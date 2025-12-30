@@ -108,8 +108,7 @@ const addTagToVideo = async (req, res) => {
 
 const newTag = async (req, res) => {
   try {
-    const pembuat = req.params.pembuat;
-    const { tag } = req.body; // Fixed: use object destructuring
+    const { tag, pembuat } = req.body; // Fixed: use object destructuring
 
     if (!pembuat || pembuat.trim() === "") {
       return res.status(400).json({

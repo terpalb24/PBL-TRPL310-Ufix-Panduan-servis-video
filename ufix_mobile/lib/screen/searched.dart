@@ -308,24 +308,6 @@ class _SearchedVideosState extends State<SearchedVideos> {
                     overflow: TextOverflow.ellipsis,
                   ),
                   Text(
-                    _getUploaderText(video.uploader),
-                    style: const TextStyle(
-                      color: Colors.black,
-                      fontSize: 12,
-                      fontFamily: 'Jost',
-                      fontWeight: FontWeight.w300,
-                    ),
-                  ),
-                  Text(
-                    _formatDuration(video.durationSec),
-                    style: const TextStyle(
-                      color: Colors.black,
-                      fontSize: 10,
-                      fontFamily: 'Jost',
-                      fontWeight: FontWeight.w300,
-                    ),
-                  ),
-                  Text(
                     _formatDate(video.sentDate),
                     style: const TextStyle(
                       color: Colors.black,

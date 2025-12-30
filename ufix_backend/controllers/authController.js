@@ -8,7 +8,9 @@ const signUp = async (req, res) => {
 
     console.log("REQ BODY SIGNUP:", req.body);
     const { email, displayName, password } = req.body;
+    console.log("ROWS LOGIN WEB:", rows);
 
+    
     if (!email || !displayName || !password) {
       return res.status(400).json({
         success: false,
@@ -114,7 +116,7 @@ const loginMobile = async (req, res) => {
   }
 };
 
-// Login (admin & teknisi - Web) 
+// Login (admin - Web) 
 const loginWeb = async (req, res) => {
   try {
     console.log("REQ BODY LOGIN WEB:", req.body);
@@ -136,7 +138,7 @@ const loginWeb = async (req, res) => {
     const query = `
       SELECT idPengguna, email, displayName, role
       FROM users
-      WHERE email = ? AND PASSWORD = ? AND role IN ('admin', 'teknisi')
+      WHERE email = ? AND PASSWORD = ? AND role IN ('superadmin', 'admin', 'teknisi')
     `;
 
     const [rows] = await dbPromise.query(query, [email, hashed]);
@@ -146,9 +148,10 @@ const loginWeb = async (req, res) => {
       console.log("LOGIN WEB FAILED: User tidak ditemukan atau role salah");
       return res.status(401).json({
         success: false,
-        message: "Akun tidak memiliki akses web atau email/password salah",
+        message: "Akun tidak memiliki akses",
       });
     }
+  
 
     const user = rows[0];
 

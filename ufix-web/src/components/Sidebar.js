@@ -3,6 +3,8 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import {
+  ChevronLeftIcon,
+  ChevronRightIcon,
   HomeIcon,
   UsersIcon,
   VideoCameraIcon,
@@ -17,13 +19,13 @@ export default function Sidebar() {
   const [collapsed, setCollapsed] = useState(false);
 
   const menuItems = [
-    { name: 'Dashboard', icon: <HomeIcon className="w-5 h-5" />, path: '/' },
-    { name: 'Pengguna', icon: <UsersIcon className="w-5 h-5" />, path: '/users' },
-    { name: 'Video', icon: <VideoCameraIcon className="w-5 h-5" />, path: '/video' },
-    { name: 'Komentar', icon: <ChatBubbleLeftIcon className="w-5 h-5" />, path: '/komentar' },
-    { name: 'Bookmark', icon: <BookmarkIcon className="w-5 h-5" />, path: '/bookmark' },
-    { name: 'Tontonan Pengguna', icon: <TvIcon className="w-5 h-5" />, path: '/menonton' },
-    { name: 'Tag', icon: <TagIcon className="w-5 h-5" />, path: '/bookmark' },
+    { name: 'Dashboard', icon: <HomeIcon className="w-3 h-3" />, path: '/' },
+    { name: 'Pengguna', icon: <UsersIcon className="w-3 h-3" />, path: '/users' },
+    { name: 'Video', icon: <VideoCameraIcon className="w-3 h-3" />, path: '/video' },
+    { name: 'Komentar', icon: <ChatBubbleLeftIcon className="w-3 h-3" />, path: '/komentar' },
+    { name: 'Bookmark', icon: <BookmarkIcon className="w-3 h-3" />, path: '/bookmark' },
+    { name: 'Tontonan Pengguna', icon: <TvIcon className="w-3 h-3" />, path: '/menonton' },
+    { name: 'Tag', icon: <TagIcon className="w-3 h-3" />, path: '/tag' },
   ];
 
   return (

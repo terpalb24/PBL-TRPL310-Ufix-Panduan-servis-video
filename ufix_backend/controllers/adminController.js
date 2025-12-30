@@ -74,7 +74,6 @@ const createUserByAdmin = async (req, res) => {
 };
 
 // Update user
-// Update user
 const updateUser = async (req, res) => {
   const id = req.params.id;
   const { email, displayName, role, password } = req.body;

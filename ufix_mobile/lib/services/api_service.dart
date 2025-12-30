@@ -59,13 +59,16 @@ class ApiService {
       String email, String password) async {
     try {
       final response = await http.post(
-        Uri.parse('$baseUrl/auth/login'),
+        Uri.parse('$baseUrl/auth/login-mobile'),
         headers: getHeaders(null),
         body: json.encode({
           'email': email,
           'password': password,
         }),
       );
+
+      print("LOGIN STATUS: ${response.statusCode}");
+      print("LOGIN BODY: ${response.body}");
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         return json.decode(response.body);

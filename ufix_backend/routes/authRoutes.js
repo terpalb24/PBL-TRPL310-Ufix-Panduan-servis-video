@@ -11,10 +11,8 @@ const router = express.Router();
 
 // PUBLIC ROUTES
 
-// Signup (default appuser - mobile)
+// Signup & Login (default appuser - mobile)
 router.post("/signup", signUp);
-
-// Login MOBILE (appuser only)
 router.post("/login-mobile", loginMobile);
 
 // Login WEB (admin & teknisi)

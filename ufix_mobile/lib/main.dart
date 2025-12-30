@@ -12,7 +12,7 @@ import 'screen/login.dart';
 import 'screen/signup.dart';
 import 'screen/mainScreen.dart';
 import 'screen/history.dart';
-import 'screen/settings.dart';
+import 'screen/profile.dart';
 import 'screen/fakeplayer.dart';
 import 'screen/comments.dart';
 
@@ -39,7 +39,7 @@ class MyApp extends StatelessWidget {
         '/front': (context) => FrontScreen(), // Fixed: frontScreen -> FrontScreen
         '/searched_videos': (context) => SearchedVideos(),
         '/history': (context) => History(),
-        '/settings': (context) => Settings(),
+        '/profile': (context) => ProfilePage(),
         '/homepage':(context) => Homepage(),
         '/comments': (context) => CommentsScreen(),
       },

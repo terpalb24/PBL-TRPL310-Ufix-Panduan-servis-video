@@ -85,7 +85,7 @@ class _HomepageState extends State<Homepage> {
 
   Future<void> _loadUserData() async {
     setState(() {
-      _userName = AuthManager.currentUser?.displayName ?? 'User';
+      _userName = AuthManager.currentUser?.displayName ?? 'displayName';
     });
   }
 

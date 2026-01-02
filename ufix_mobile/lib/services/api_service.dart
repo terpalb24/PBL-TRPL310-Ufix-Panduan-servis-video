@@ -33,7 +33,7 @@ class ApiService {
       String email, String displayName, String password) async {
     try {
       final response = await http.post(
-        Uri.parse('$baseUrl/auth/signUp'),
+        Uri.parse('$baseUrl/auth/signup'),
         headers: {'Content-Type': 'application/json'},
         body: json.encode({
           'email': email,

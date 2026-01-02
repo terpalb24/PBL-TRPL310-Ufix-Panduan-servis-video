@@ -9,7 +9,6 @@ const signUp = async (req, res) => {
 
     console.log("REQ BODY SIGNUP:", req.body);
     const { email, displayName, password } = req.body;
-    console.log("ROWS LOGIN WEB:", rows);
 
     
     if (!email || !displayName || !password) {
@@ -34,7 +33,7 @@ const signUp = async (req, res) => {
 
     const hashedPassword = crypto
       .createHash("sha256")
-      .update(password.trim())
+      .update(password)
       .digest("hex");
 
     const [result] = await dbPromise.query(
@@ -53,7 +52,8 @@ const signUp = async (req, res) => {
       },
     });
   } catch (err) {
-    res.status(500).json({ success: false, message: err.message });
+    console.error("SIGNUP ERROR:", err);
+    res.status(500).json({ success: false, message: err.message, stack: err.stack });
   }
 };
 

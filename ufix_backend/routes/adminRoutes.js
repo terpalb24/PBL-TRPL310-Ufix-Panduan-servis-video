@@ -1,6 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const {
+  getDashboard,
   getAllUsers,
   getUserById,
   createUserByAdmin,
@@ -14,6 +15,7 @@ const { adminOnly } = require("../middleware/roleGuard");
 // Semua route admin harus lewat middleware ini:
 router.use(authenticateToken, adminOnly);
 
+router.get("/dashboard", getDashboard);
 router.get("/users", getAllUsers);
 router.get("/users/:id", getUserById);
 router.post("/users", createUserByAdmin);

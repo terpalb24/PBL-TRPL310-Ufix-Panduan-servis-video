@@ -6,6 +6,32 @@ function hashPassword(password) {
   return crypto.createHash("sha256").update(password).digest("hex");
 }
 
+
+// Dashboard data
+const getDashboard = async (req, res) => {
+  try {
+    const [rows] = await db.promise().query(`
+      SELECT
+        COUNT(*) AS totalUsers,
+        SUM(CASE WHEN role = 'appuser' THEN 1 ELSE 0 END) AS totalAppUser,
+        SUM(CASE WHEN role = 'teknisi' THEN 1 ELSE 0 END) AS totalTeknisi
+      FROM users
+    `);
+
+    console.log("Dashboard rows:", rows); // DEBUG
+    res.json({
+      success: true,
+      data: rows[0] || { totalUsers:0, totalAppUser:0, totalTeknisi:0 },
+    });
+  } catch (error) {
+    console.error("Error getDashboardStats:", error); // full error
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
 // Get all users (Admin only)
 const getAllUsers = async (req, res) => {
   try {
@@ -60,16 +86,12 @@ const createUserByAdmin = async (req, res) => {
       INSERT INTO users (email, displayName, role, PASSWORD)
       VALUES (?, ?, ?, ?)
     `;
-
     await db.promise().query(query, [email, displayName, role, hashed]);
 
-    res.json({
-      success: true,
-      message: "User created successfully"
-    });
+    res.json({ success: true, message: "User created successfully" });
   } catch (error) {
     console.error("Error createUserByAdmin:", error);
-    res.status(500).json({ success: false, message: "Server error" });
+    res.status(500).json({ success: false, message: error.message });
   }
 };
 
@@ -119,6 +141,7 @@ const deleteUser = async (req, res) => {
 };
 
 module.exports = {
+  getDashboard,
   getAllUsers,
   getUserById,
   createUserByAdmin,

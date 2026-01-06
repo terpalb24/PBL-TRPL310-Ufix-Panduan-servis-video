@@ -12,35 +12,41 @@ class Homepage extends StatefulWidget {
 }
 
 class _HomepageState extends State<Homepage> {
-  List<Video> _videos = [];
-  bool _isLoading = true;
-  String _error = '';
-  String _userName = 'User';
-  String _debugInfo = 'Initializing...'; // Add debug info string
+  List<Video> _newVideos = [];
+  List<Video> _watchedVideos = [];
+  Map<int, bool> _bookmarkedStatus = {};
+  bool _isLoadingNewVideos = true;
+  bool _isLoadingWatchedVideos = true;
+  bool _isLoadingBookmarks = false;
+  String _errorNewVideos = '';
+  String _errorWatchedVideos = '';
+  String _userName = '';
 
   @override
   void initState() {
     super.initState();
-    _loadVideos();
     _loadUserData();
+    _loadAllData();
   }
 
-  Future<void> _loadVideos() async {
+  Future<void> _loadAllData() async {
+    await Future.wait([
+      _loadNewVideos(),
+      _loadWatchedVideos(),
+    ]);
+  }
+
+  Future<void> _loadNewVideos() async {
     setState(() {
-      _isLoading = true;
-      _error = '';
-      _debugInfo = 'Starting API call...';
+      _isLoadingNewVideos = true;
+      _errorNewVideos = '';
     });
 
     try {
-      _debugInfo = 'Calling API...';
       final result = await ApiService.getNewVideos();
-      
-      _debugInfo = 'API response received. Success: ${result['success']}';
       
       if (result['success'] == true) {
         final videosData = result['videos'] as List<dynamic>?;
-        _debugInfo = 'Videos data: ${videosData?.length ?? 0} items';
         
         if (videosData != null && videosData.isNotEmpty) {
           final List<Video> parsedVideos = [];
@@ -49,44 +55,180 @@ class _HomepageState extends State<Homepage> {
             try {
               final video = Video.fromJson(Map<String, dynamic>.from(videoData));
               parsedVideos.add(video);
-              _debugInfo = 'Parsed video: ID ${video.idVideo}, Title: ${video.title}';
             } catch (e) {
-              _debugInfo = 'Error parsing video: $e';
+              print('Error parsing video: $e');
             }
           }
           
           setState(() {
-            _videos = parsedVideos;
-            _isLoading = false;
-            _debugInfo = 'Loaded ${_videos.length} videos successfully';
+            _newVideos = parsedVideos;
+            _isLoadingNewVideos = false;
           });
+          
+          // Load bookmark status for new videos
+          _loadBookmarkStatus(parsedVideos);
         } else {
           setState(() {
-            _isLoading = false;
-            _error = 'No videos found in response';
-            _debugInfo = 'No videos in API response';
+            _isLoadingNewVideos = false;
+            _errorNewVideos = 'No new videos found';
           });
         }
       } else {
         setState(() {
-          _isLoading = false;
-          _error = result['message'] ?? 'Failed to load videos';
-          _debugInfo = 'API returned error: $_error';
+          _isLoadingNewVideos = false;
+          _errorNewVideos = result['message'] ?? 'Failed to load new videos';
         });
       }
     } catch (e) {
       setState(() {
-        _isLoading = false;
-        _error = 'Error loading videos: $e';
-        _debugInfo = 'Exception: $e';
+        _isLoadingNewVideos = false;
+        _errorNewVideos = 'Error loading videos: $e';
+      });
+    }
+  }
+
+  Future<void> _loadWatchedVideos() async {
+    setState(() {
+      _isLoadingWatchedVideos = true;
+      _errorWatchedVideos = '';
+    });
+
+    try {
+      final result = await ApiService.getHistory();
+      
+      if (result['success'] == true) {
+        final historyData = result['history'] as List<dynamic>?;
+        
+        if (historyData != null && historyData.isNotEmpty) {
+          final List<Video> parsedVideos = [];
+          
+          for (final historyItem in historyData) {
+            try {
+              // Extract video data from history item
+              final videoData = historyItem['video'] ?? historyItem;
+              final video = Video.fromJson(Map<String, dynamic>.from(videoData));
+              parsedVideos.add(video);
+            } catch (e) {
+              print('Error parsing history video: $e');
+            }
+          }
+          
+          setState(() {
+            _watchedVideos = parsedVideos;
+            _isLoadingWatchedVideos = false;
+          });
+          
+          // Load bookmark status for watched videos
+          _loadBookmarkStatus(parsedVideos);
+        } else {
+          setState(() {
+            _isLoadingWatchedVideos = false;
+            _errorWatchedVideos = 'No watch history found';
+          });
+        }
+      } else {
+        setState(() {
+          _isLoadingWatchedVideos = false;
+          _errorWatchedVideos = result['message'] ?? 'Failed to load history';
+        });
+      }
+    } catch (e) {
+      setState(() {
+        _isLoadingWatchedVideos = false;
+        _errorWatchedVideos = 'Error loading history: $e';
       });
     }
   }
 
   Future<void> _loadUserData() async {
+    final currentUser = AuthManager.currentUser;
+    
+    if (currentUser != null && currentUser.displayName.isNotEmpty) {
+      setState(() {
+        _userName = currentUser.displayName;
+      });
+    } else {
+      // Fallback: Try to get from API
+      try {
+        final profileResult = await ApiService.getProfile();
+        if (profileResult['success'] == true && profileResult['user'] != null) {
+          final userData = profileResult['user'] as Map<String, dynamic>;
+          setState(() {
+            _userName = userData['displayName'] ?? 'User';
+          });
+        }
+      } catch (e) {
+        print('Error loading user data: $e');
+      }
+    }
+    
+    // Ensure we have at least "User" as fallback
+    if (_userName.isEmpty) {
+      setState(() {
+        _userName = 'User';
+      });
+    }
+  }
+
+  Future<void> _loadBookmarkStatus(List<Video> videos) async {
     setState(() {
-      _userName = AuthManager.currentUser?.displayName ?? 'displayName';
+      _isLoadingBookmarks = true;
     });
+
+    try {
+      for (final video in videos) {
+        final isBookmarked = await ApiService.isBookmarked(video.idVideo);
+        setState(() {
+          _bookmarkedStatus[video.idVideo] = isBookmarked;
+        });
+      }
+    } catch (e) {
+      print('Error loading bookmark status: $e');
+    } finally {
+      setState(() {
+        _isLoadingBookmarks = false;
+      });
+    }
+  }
+
+  Future<void> _toggleBookmark(Video video) async {
+    final videoId = video.idVideo;
+    final isCurrentlyBookmarked = _bookmarkedStatus[videoId] ?? false;
+    
+    setState(() {
+      _bookmarkedStatus[videoId] = !isCurrentlyBookmarked;
+    });
+
+    try {
+      if (isCurrentlyBookmarked) {
+        await ApiService.removeBookmark(videoId);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Removed from bookmarks'),
+            backgroundColor: Color(0xFF3A567A),
+          ),
+        );
+      } else {
+        await ApiService.addBookmark(videoId);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Added to bookmarks'),
+            backgroundColor: Color(0xFF3A567A),
+          ),
+        );
+      }
+    } catch (e) {
+      // Revert on error
+      setState(() {
+        _bookmarkedStatus[videoId] = isCurrentlyBookmarked;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Failed to update bookmark: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
   }
 
   void _navigateToVideoPlayer(Video video) {
@@ -97,418 +239,489 @@ class _HomepageState extends State<Homepage> {
     );
   }
 
+  Widget _buildVideoCard(Video video, {double width = 160, double height = 240}) {
+    final isBookmarked = _bookmarkedStatus[video.idVideo] ?? false;
+    
+    return GestureDetector(
+      onTap: () => _navigateToVideoPlayer(video),
+      child: Container(
+        width: width,
+        height: height,
+        margin: const EdgeInsets.only(right: 18),
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+        decoration: ShapeDecoration(
+          color: const Color(0xFFFFF7F7),
+          shape: RoundedRectangleBorder(
+            side: const BorderSide(width: 1, color: Color(0xFF3A567A)),
+            borderRadius: BorderRadius.circular(20),
+          ),
+        ),
+        child: Stack(
+          children: [
+            Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Thumbnail
+                Container(
+                  width: double.infinity,
+                  height: 160,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFD9D9D9),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(12),
+                    child: _buildThumbnailImage(video.thumbnailPath),
+                  ),
+                ),
+                const SizedBox(height: 8),
+                // Title
+                Text(
+                  video.title,
+                  style: const TextStyle(
+                    color: Colors.black,
+                    fontSize: 16,
+                    fontFamily: 'Inter',
+                    fontWeight: FontWeight.w600,
+                  ),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                // Date
+                const SizedBox(height: 4),
+                Text(
+                  _formatDate(video.sentDate),
+                  style: const TextStyle(
+                    color: Colors.black54,
+                    fontSize: 12,
+                    fontFamily: 'Inter',
+                    fontWeight: FontWeight.w300,
+                  ),
+                ),
+              ],
+            ),
+            // Bookmark Button
+            Positioned(
+              top: 8,
+              right: 8,
+              child: GestureDetector(
+                onTap: () => _toggleBookmark(video),
+                child: Container(
+                  width: 32,
+                  height: 32,
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.2),
+                        blurRadius: 4,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: Icon(
+                    isBookmarked ? Icons.bookmark : Icons.bookmark_border,
+                    color: const Color(0xFF3A567A),
+                    size: 20,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildThumbnailImage(String thumbnailPath) {
+    String imageUrl = _constructImageUrl(thumbnailPath);
+    
+    return Image.network(
+      imageUrl,
+      fit: BoxFit.cover,
+      loadingBuilder: (context, child, loadingProgress) {
+        if (loadingProgress == null) return child;
+        return Container(
+          color: Colors.grey[300],
+          child: Center(
+            child: CircularProgressIndicator(
+              color: const Color(0xFF3A567A),
+              value: loadingProgress.expectedTotalBytes != null
+                  ? loadingProgress.cumulativeBytesLoaded / loadingProgress.expectedTotalBytes!
+                  : null,
+            ),
+          ),
+        );
+      },
+      errorBuilder: (context, error, stackTrace) {
+        return Container(
+          color: Colors.grey[300],
+          child: const Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                Icons.videocam,
+                color: Colors.grey,
+                size: 40,
+              ),
+              SizedBox(height: 8),
+              Text(
+                'No Thumbnail',
+                style: TextStyle(
+                  color: Colors.grey,
+                  fontSize: 12,
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  String _constructImageUrl(String thumbnailPath) {
+    if (thumbnailPath.startsWith('http')) {
+      return thumbnailPath;
+    } else if (thumbnailPath.isNotEmpty) {
+      return '${ApiService.baseUrl.replaceFirst('/api', '')}$thumbnailPath';
+    } else {
+      return '${ApiService.baseUrl.replaceFirst('/api', '')}/placeholder.jpg';
+    }
+  }
+
+  String _formatDate(DateTime? date) {
+    if (date == null) return 'Date unknown';
+    
+    final now = DateTime.now();
+    final difference = now.difference(date);
+    
+    if (difference.inDays == 0) {
+      return 'Today';
+    } else if (difference.inDays == 1) {
+      return 'Yesterday';
+    } else if (difference.inDays < 7) {
+      return '${difference.inDays} days ago';
+    } else {
+      return '${date.day}/${date.month}/${date.year}';
+    }
+  }
+
+  Widget _buildVideoSection({
+    required String title,
+    required List<Video> videos,
+    required bool isLoading,
+    required String error,
+    required VoidCallback onRefresh,
+    VoidCallback? onSeeMore,
+    bool showBookmarks = false,
+  }) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Section Header
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                title,
+                style: const TextStyle(
+                  color: Color(0xFF3A567A),
+                  fontSize: 20,
+                  fontFamily: 'Jost',
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              if (onSeeMore != null)
+                GestureDetector(
+                  onTap: onSeeMore,
+                  child: Row(
+                    children: [
+                      const Text(
+                        'See More',
+                        style: TextStyle(
+                          color: Color(0xFF3A567A),
+                          fontSize: 14,
+                          fontFamily: 'Jost',
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      const SizedBox(width: 4),
+                      Container(
+                        width: 18,
+                        height: 18,
+                        child: const Icon(
+                          Icons.arrow_forward_ios,
+                          size: 14,
+                          color: Color(0xFF3A567A),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          
+          // Content
+          if (isLoading)
+            Container(
+              height: 240,
+              alignment: Alignment.center,
+              child: const CircularProgressIndicator(color: Color(0xFF3A567A)),
+            )
+          else if (error.isNotEmpty)
+            Container(
+              height: 240,
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: const Color(0xFFF7F7FA),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: const Color(0xFF3A567A), width: 1),
+              ),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(Icons.error_outline, color: Colors.red, size: 40),
+                  const SizedBox(height: 12),
+                  Text(
+                    error,
+                    style: const TextStyle(color: Colors.red),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 16),
+                  ElevatedButton(
+                    onPressed: onRefresh,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF3A567A),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                    child: const Text(
+                      'Retry',
+                      style: TextStyle(color: Colors.white),
+                    ),
+                  ),
+                ],
+              ),
+            )
+          else if (videos.isEmpty)
+            Container(
+              height: 240,
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: const Color(0xFFF7F7FA),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: const Color(0xFF3A567A), width: 1),
+              ),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(Icons.videocam_off, color: Colors.grey, size: 40),
+                  const SizedBox(height: 12),
+                  const Text(
+                    'No videos available',
+                    style: TextStyle(color: Colors.grey),
+                  ),
+                  const SizedBox(height: 16),
+                  ElevatedButton(
+                    onPressed: onRefresh,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF3A567A),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                    child: const Text(
+                      'Refresh',
+                      style: TextStyle(color: Colors.white),
+                    ),
+                  ),
+                ],
+              ),
+            )
+          else
+            SizedBox(
+              height: 240,
+              child: ListView.builder(
+                scrollDirection: Axis.horizontal,
+                itemCount: videos.length,
+                itemBuilder: (context, index) {
+                  return _buildVideoCard(videos[index]);
+                },
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: const Color(0xFFF7F7FA),
       appBar: AppBar(
-        backgroundColor: Color(0xFFF7F7FA),
-        foregroundColor: Color(0xFF3A567A),
-        elevation: 4,
+        backgroundColor: const Color(0xFFF7F7FA),
+        elevation: 0,
         leading: Container(
-          margin: EdgeInsets.all(8),
+          margin: const EdgeInsets.all(8),
           child: Image.asset(
             'Asset/logo.png',
-            width: 210,
-            height: 110,
+            fit: BoxFit.contain,
           ),
         ),
-        title: SizedBox.shrink(),
+        title: const SizedBox.shrink(),
         centerTitle: true,
         actions: [
           IconButton(
             onPressed: () {
               Navigator.pushNamed(context, '/history');
             },
-            icon: Icon(Icons.history),
+            icon: const Icon(Icons.history, color: Color(0xFF3A567A)),
+          ),
+          IconButton(
+            onPressed: () {
+              Navigator.pushNamed(context, '/bookmarks');
+            },
+            icon: const Icon(Icons.bookmark, color: Color(0xFF3A567A)),
           ),
           IconButton(
             onPressed: () {
               Navigator.pushNamed(context, '/settings');
             },
-            icon: Icon(Icons.settings),
+            icon: const Icon(Icons.settings, color: Color(0xFF3A567A)),
           ),
         ],
       ),
-      body: Column(
-        children: [
-          Expanded(
-            child: Stack(
-              children: [
-                // Background
-                Container(
-                  width: MediaQuery.of(context).size.width,
-                  height: MediaQuery.of(context).size.height,
-                  decoration: BoxDecoration(color: const Color(0xFFF7F7FA)),
-                ),
-
-                // Scrollable content
-                CustomScrollView(
-                  slivers: [
-                    // Welcome banner section
-                    SliverToBoxAdapter(
-                      child: Container(
-                        width: double.infinity,
-                        height: 400,
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 9,
-                          vertical: 6,
-                        ),
-                        decoration: BoxDecoration(color: const Color(0xFF3A567A)),
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          mainAxisAlignment: MainAxisAlignment.start,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Welcome, $_userName!',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 24,
-                                fontFamily: 'Kodchasan',
-                                fontWeight: FontWeight.w400,
-                              ),
-                            ),
-                            const SizedBox(height: 78),
-                            Container(
-                              width: 286,
-                              height: 164,
-                              decoration: BoxDecoration(
-                                image: DecorationImage(
-                                  image: AssetImage('Asset/Thumbnail-Fake.png'),
-                                  fit: BoxFit.cover,
-                                ),
-                              ),
-                            ),
-                            const SizedBox(height: 78),
-                            Text(
-                              'Resume watching?',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 20,
-                                fontFamily: 'Kodchasan',
-                                fontWeight: FontWeight.w400,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-
-                    // Tab section
-                    SliverToBoxAdapter(
-                      child: SizedBox(
-                        width: double.infinity,
-                        child: Row(
-                          children: [
-                            Expanded(
-                              child: Container(
-                                height: 38,
-                                decoration: BoxDecoration(
-                                  color: const Color(0xFFF7F7FA),
-                                  border: Border.all(
-                                    width: 1,
-                                    color: const Color(0xFF3A567A),
-                                  ),
-                                ),
-                                child: Center(
-                                  child: Text(
-                                    'Suggested',
-                                    style: TextStyle(
-                                      color: Colors.black,
-                                      fontSize: 13,
-                                      fontFamily: 'Jost',
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ),
-                            Expanded(
-                              child: Opacity(
-                                opacity: 0.50,
-                                child: Container(
-                                  height: 38,
-                                  decoration: BoxDecoration(
-                                    color: const Color(0xFFF7F7FA),
-                                    border: Border.all(
-                                      width: 1,
-                                      color: const Color(0xFF3A567A),
-                                    ),
-                                  ),
-                                  child: Center(
-                                    child: Text(
-                                      'Newest',
-                                      style: TextStyle(
-                                        color: Colors.black,
-                                        fontSize: 13,
-                                        fontFamily: 'Jost',
-                                        fontWeight: FontWeight.w600,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-
-                    // Video list section
-                    if (_isLoading)
-                      SliverToBoxAdapter(
-                        child: Container(
-                          height: 200,
-                          child: Center(
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                CircularProgressIndicator(
-                                  color: Color(0xFF3A567A),
-                                ),
-                                SizedBox(height: 16),
-                                Text('Loading videos...'),
-                              ],
-                            ),
-                          ),
-                        ),
-                      )
-                    else if (_error.isNotEmpty)
-                      SliverToBoxAdapter(
-                        child: Container(
-                          height: 200,
-                          child: Center(
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(Icons.error, color: Colors.red, size: 50),
-                                SizedBox(height: 16),
-                                Text(
-                                  'Error: $_error',
-                                  style: TextStyle(
-                                    color: Colors.red,
-                                    fontSize: 16,
-                                  ),
-                                  textAlign: TextAlign.center,
-                                ),
-                                SizedBox(height: 16),
-                                ElevatedButton(
-                                  onPressed: _loadVideos,
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: Color(0xFF3A567A),
-                                  ),
-                                  child: Text(
-                                    'Retry',
-                                    style: TextStyle(color: Colors.white),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      )
-                    else if (_videos.isEmpty)
-                      SliverToBoxAdapter(
-                        child: Container(
-                          height: 200,
-                          child: Center(
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(Icons.videocam_off, color: Colors.grey, size: 50),
-                                SizedBox(height: 16),
-                                Text(
-                                  'No videos available',
-                                  style: TextStyle(
-                                    color: Colors.grey,
-                                    fontSize: 16,
-                                  ),
-                                ),
-                                SizedBox(height: 16),
-                                ElevatedButton(
-                                  onPressed: _loadVideos,
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: Color(0xFF3A567A),
-                                  ),
-                                  child: Text(
-                                    'Refresh',
-                                    style: TextStyle(color: Colors.white),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      )
-                    else
-                      SliverList(
-                        delegate: SliverChildBuilderDelegate(
-                          (context, index) {
-                            final video = _videos[index];
-                            return Padding(
-                              padding: EdgeInsets.fromLTRB(16, 10, 16, 10),
-                              child: _buildVideoItem(context, video),
-                            );
-                          },
-                          childCount: _videos.length,
-                        ),
-                      ),
+      body: RefreshIndicator(
+        color: const Color(0xFF3A567A),
+        onRefresh: () async {
+          await _loadAllData();
+        },
+        child: ListView(
+          children: [
+            // Welcome Section
+            Container(
+              padding: const EdgeInsets.fromLTRB(24, 20, 24, 20),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    const Color(0xFF3A567A).withOpacity(0.9),
+                    const Color(0xFF4B92DB),
                   ],
                 ),
-              ],
+                borderRadius: const BorderRadius.only(
+                  bottomLeft: Radius.circular(20),
+                  bottomRight: Radius.circular(20),
+                ),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Welcome back, $_userName! 👋',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 28,
+                      fontFamily: 'Kodchasan',
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  const Text(
+                    'Continue your learning journey',
+                    style: TextStyle(
+                      color: Colors.white70,
+                      fontSize: 16,
+                      fontFamily: 'Jost',
+                      fontWeight: FontWeight.w400,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  // Quick Actions Row
+                  Row(
+                    children: [
+                      Expanded(
+                        child: ElevatedButton.icon(
+                          onPressed: () {
+                            Navigator.pushNamed(context, '/bookmarks');
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.white,
+                            foregroundColor: const Color(0xFF3A567A),
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                          icon: const Icon(Icons.bookmark),
+                          label: const Text('Bookmarks'),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: ElevatedButton.icon(
+                          onPressed: () {
+                            Navigator.pushNamed(context, '/search');
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.white,
+                            foregroundColor: const Color(0xFF3A567A),
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                          icon: const Icon(Icons.search),
+                          label: const Text('Search'),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
             ),
-          ),
-        ],
+
+            // Divider
+            const Divider(height: 1, color: Color(0xFFE0E0E0)),
+
+            // Last Watched Videos Section
+            _buildVideoSection(
+              title: 'Continue Watching',
+              videos: _watchedVideos,
+              isLoading: _isLoadingWatchedVideos,
+              error: _errorWatchedVideos,
+              onRefresh: _loadWatchedVideos,
+              onSeeMore: () {
+                Navigator.pushNamed(context, '/history');
+              },
+            ),
+
+            // Divider
+            const Divider(height: 1, color: Color(0xFFE0E0E0)),
+
+            // New Videos Section
+            _buildVideoSection(
+              title: 'New Videos',
+              videos: _newVideos,
+              isLoading: _isLoadingNewVideos,
+              error: _errorNewVideos,
+              onRefresh: _loadNewVideos,
+              onSeeMore: () {
+                Navigator.pushNamed(context, '/new-videos');
+              },
+            ),
+
+            const SizedBox(height: 20),
+          ],
+        ),
       ),
     );
-  }
-
- Widget _buildVideoItem(BuildContext context, Video video) {
-  return GestureDetector(
-    onTap: () {
-      _navigateToVideoPlayer(video);
-    },
-    child: Container(
-      width: double.infinity,
-      height: 100,
-      padding: const EdgeInsets.all(12),
-      decoration: ShapeDecoration(
-        gradient: LinearGradient(
-          begin: Alignment(0.98, -0.00),
-          end: Alignment(0.02, 1.00),
-          colors: [const Color(0xFFEFF7FC), const Color(0xFFF7F7FA)],
-        ),
-        shape: RoundedRectangleBorder(
-          side: BorderSide(width: 1, color: const Color(0x333A567A)),
-          borderRadius: BorderRadius.circular(20),
-        ),
-      ),
-      child: Row(
-        children: [
-          // Thumbnail with better error handling
-          _buildThumbnailWidget(video.thumbnailPath),
-          const SizedBox(width: 11),
-          // Video info
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                Text(
-                  video.title,
-                  style: TextStyle(
-                    color: Colors.black,
-                    fontSize: 18,
-                    fontFamily: 'Jost',
-                    fontWeight: FontWeight.w400,
-                  ),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                Text(
-                  _formatDate(video.sentDate),
-                  style: TextStyle(
-                    color: Colors.black,
-                    fontSize: 8,
-                    fontFamily: 'Jost',
-                    fontWeight: FontWeight.w300,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    ),
-  );
-}
-
-// Separate method for thumbnail with proper error handling
-Widget _buildThumbnailWidget(String thumbnailPath) {
-  return Container(
-    width: 140,
-    height: 80,
-    decoration: BoxDecoration(
-      borderRadius: BorderRadius.circular(20),
-      color: Colors.grey[300], // Fallback background color
-    ),
-    child: ClipRRect(
-      borderRadius: BorderRadius.circular(20),
-      child: _buildThumbnailImage(thumbnailPath),
-    ),
-  );
-}
-
-// Separate method for image with error handling
-Widget _buildThumbnailImage(String thumbnailPath) {
-  String imageUrl = _constructImageUrl(thumbnailPath);
-  
-  return Image.network(
-    imageUrl,
-    fit: BoxFit.cover,
-    loadingBuilder: (context, child, loadingProgress) {
-      if (loadingProgress == null) return child;
-      return Container(
-        color: Colors.grey[300],
-        child: Center(
-          child: CircularProgressIndicator(
-            color: Color(0xFF3A567A),
-            value: loadingProgress.expectedTotalBytes != null
-                ? loadingProgress.cumulativeBytesLoaded / loadingProgress.expectedTotalBytes!
-                : null,
-          ),
-        ),
-      );
-    },
-    errorBuilder: (context, error, stackTrace) {
-      return Container(
-        color: Colors.grey[300],
-        child: Icon(
-          Icons.videocam,
-          color: Colors.grey[600],
-          size: 40,
-        ),
-      );
-    },
-  );
-}
-
-// Helper method to construct image URL
-String _constructImageUrl(String thumbnailPath) {
-  if (thumbnailPath.startsWith('http')) {
-    return thumbnailPath;
-  } else if (thumbnailPath.isNotEmpty) {
-    return 'http://localhost:3000$thumbnailPath';
-  } else {
-    // Return a placeholder image URL or use asset
-    return 'http://localhost:3000/placeholder.jpg'; // Fallback
-  }
-}
-
-  ImageProvider _getThumbnailImage(String thumbnailPath) {
-    if (thumbnailPath.startsWith('http')) {
-      return NetworkImage(thumbnailPath);
-    } else if (thumbnailPath.isNotEmpty) {
-      return NetworkImage('http://localhost:3000$thumbnailPath');
-    } else {
-      return AssetImage('Asset/Thumbnail-Fake.png');
-    }
-  }
-
-  String _getUploaderText(int? uploader) {
-    return uploader != null ? 'User $uploader' : 'Unknown Uploader';
-  }
-
-  String _formatDuration(int? durationSec) {
-    if (durationSec == null) return 'Duration: Unknown';
-    final duration = Duration(seconds: durationSec);
-    final minutes = duration.inMinutes;
-    final seconds = duration.inSeconds.remainder(60);
-    return '${minutes}m ${seconds}s';
-  }
-
-  String _formatDate(DateTime? date) {
-    if (date == null) return 'Date unknown';
-    return '${date.day}/${date.month}/${date.year}';
   }
 }

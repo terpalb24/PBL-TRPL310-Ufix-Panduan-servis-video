@@ -1,0 +1,8 @@
+
+ufix_backend/thumbnail/thumbnail-test-video.jpg
+
+# Database config
+ufix_backend/config/database.js
+
+# ENV
+ufix_backend/.env

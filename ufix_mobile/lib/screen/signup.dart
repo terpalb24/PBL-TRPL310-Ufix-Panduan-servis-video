@@ -63,11 +63,17 @@ class _SignupScreenState extends State<SignupScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       resizeToAvoidBottomInset: true,
-      body: SafeArea(
-        child: SingleChildScrollView(
-          child: Container(
-            width: MediaQuery.of(context).size.width,
-            decoration: BoxDecoration(color: const Color(0xFFF7F7FA)),
+      body: Container(
+        width: MediaQuery.of(context).size.width,
+        height: MediaQuery.of(context).size.height,
+        decoration: const BoxDecoration(
+          image: DecorationImage(
+            image: AssetImage('Asset/bg-welcome.png'),
+            fit: BoxFit.cover,
+          ),
+        ),
+        child: SafeArea(
+          child: SingleChildScrollView(
             child: Column(
               mainAxisSize: MainAxisSize.min,
               mainAxisAlignment: MainAxisAlignment.start,
@@ -162,7 +168,7 @@ class _SignupScreenState extends State<SignupScreen> {
                                 ),
                               ),
                               child: TextField(
-                                controller: _emailController, // Add this
+                                controller: _emailController,
                                 decoration: InputDecoration(
                                   border: InputBorder.none,
                                   contentPadding: EdgeInsets.symmetric(
@@ -207,7 +213,7 @@ class _SignupScreenState extends State<SignupScreen> {
                                 ),
                               ),
                               child: TextField(
-                                controller: _displayNameController, // Add this
+                                controller: _displayNameController,
                                 decoration: InputDecoration(
                                   border: InputBorder.none,
                                   contentPadding: EdgeInsets.symmetric(
@@ -298,7 +304,7 @@ class _SignupScreenState extends State<SignupScreen> {
                                 ),
                               ),
                               child: TextField(
-                                controller: _confirmPasswordController, // Add this
+                                controller: _confirmPasswordController,
                                 obscureText: true,
                                 decoration: InputDecoration(
                                   border: InputBorder.none,
@@ -323,7 +329,7 @@ class _SignupScreenState extends State<SignupScreen> {
                           ),
                         ),
                         child: TextButton(
-                          onPressed: _isLoading ? null : _signUp, // Change this
+                          onPressed: _isLoading ? null : _signUp,
                           child: _isLoading
                               ? SizedBox(
                                   width: 20,

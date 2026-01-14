@@ -8,66 +8,81 @@ class WelcomeUnlogged extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       resizeToAvoidBottomInset: true,
-      body: SafeArea(
-        child: SingleChildScrollView(
-          child: Container(
-            width: MediaQuery.of(context).size.width, // responsive width and height
-            height: MediaQuery.of(context).size.height,
-            color: const Color(0xFFF7F7F7),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                // Bagian atas: teks & gambar
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 40),
-                  child: SizedBox(
-                    width: 346,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text(
-                          'Selamat datang di',
-                          style: TextStyle(
-                            color: Colors.black,
-                            fontSize: 24,
-                            fontFamily: 'Kodchasan',
-                            fontWeight: FontWeight.w500,
+      body: Container(
+        width: MediaQuery.of(context).size.width,
+        height: MediaQuery.of(context).size.height,
+        decoration: const BoxDecoration(
+          image: DecorationImage(
+            image: AssetImage('Asset/bg-welcome.png'),
+            fit: BoxFit.cover,
+          ),
+        ),
+        child: SafeArea(
+          child: Stack(
+            children: [
+              // Main content
+              Positioned.fill(
+                child: SingleChildScrollView(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      // Bagian atas: teks & gambar
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 40),
+                        child: SizedBox(
+                          width: 346,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text(
+                                'Selamat datang di',
+                                style: TextStyle(
+                                  color: Colors.black,
+                                  fontSize: 24,
+                                  fontFamily: 'Kodchasan',
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                              const SizedBox(height: 16),
+                              Container(
+                                width: double.infinity,
+                                height: 181,
+                                decoration: const BoxDecoration(
+                                  image: DecorationImage(
+                                    image: AssetImage('Asset/logo.png'),
+                                    fit: BoxFit.cover,
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(height: 16),
+                              const Text(
+                                'Solusi untuk kebutuhan elektronikmu',
+                                style: TextStyle(
+                                  color: Colors.black,
+                                  fontSize: 16,
+                                  fontFamily: 'Kodchasan',
+                                  fontWeight: FontWeight.w400,
+                                ),
+                              ),
+                            ],
                           ),
                         ),
-                        const SizedBox(height: 16),
-                        Container(
-                          width: double.infinity,
-                          height: 181,
-                          decoration: const BoxDecoration(
-                            image: DecorationImage(
-                              image: AssetImage('Asset/logo.png'), // Fixed path
-                              fit: BoxFit.cover,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 16),
-                        const Text(
-                          'Solusi untuk kebutuhan elektronikmu',
-                          style: TextStyle(
-                            color: Colors.black,
-                            fontSize: 16,
-                            fontFamily: 'Kodchasan',
-                            fontWeight: FontWeight.w400,
-                          ),
-                        ),
-                      ],
-                    ),
+                      ),
+
+                      // Spacer to push content up (without using Expanded)
+                      SizedBox(height: MediaQuery.of(context).size.height * 0.2),
+                    ],
                   ),
                 ),
+              ),
 
-                // Spacer to push buttons to bottom
-                const Expanded(
-                  child: SizedBox(),
-                ),
-
-                // Bagian bawah: tombol Sign In & Login
-                Container(
+              // Fixed bottom buttons
+              Positioned(
+                left: 0,
+                right: 0,
+                bottom: 0,
+                child: Container(
                   width: double.infinity,
                   padding: const EdgeInsets.symmetric(horizontal: 74, vertical: 51),
                   decoration: const ShapeDecoration(
@@ -138,8 +153,8 @@ class WelcomeUnlogged extends StatelessWidget {
                     ],
                   ),
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),

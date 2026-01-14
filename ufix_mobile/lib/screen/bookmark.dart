@@ -58,7 +58,7 @@ class _BookmarkState extends State<Bookmark> {
   Future<void> _removeBookmark(int videoId) async {
     final result = await ApiService.removeBookmark(videoId);
   
-    if (!mounted) return; // 
+    if (!mounted) return;
 
     if (result['success'] == true) {
       setState(() {
@@ -86,9 +86,7 @@ class _BookmarkState extends State<Bookmark> {
     }
   }
 
-  // Add this navigation method
   void _navigateToVideoPlayerFromBookmark(Map<String, dynamic> bookmark) {
-    // Create a Video object from bookmark data
     final video = Video(
       idVideo: bookmark['idVideo'] ?? 0,
       title: bookmark['title'] ?? 'No Title',
@@ -99,7 +97,6 @@ class _BookmarkState extends State<Bookmark> {
       sentDate: bookmark['sentDate'] != null 
           ? DateTime.tryParse(bookmark['sentDate'].toString()) 
           : null,
-      // Add other fields your Video model requires
     );
     
     Navigator.pushNamed(
@@ -120,148 +117,380 @@ class _BookmarkState extends State<Bookmark> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: SafeArea(
-        child: Column(
-          children: [
-            // Header
-            Padding(
-              padding: const EdgeInsets.all(16),
-              child: Row(
-                children: [
-                  const Text(
-                    'Bookmarks',
-                    style: TextStyle(
-                      fontSize: 32,
-                      fontWeight: FontWeight.w700,
-                      color: Color(0xFF3A567A),
-                      fontFamily: 'Kodchasan',
+      body: Container(
+        width: MediaQuery.of(context).size.width,
+        height: MediaQuery.of(context).size.height,
+        decoration: const BoxDecoration(
+          image: DecorationImage(
+            image: AssetImage('Asset/bg-app.png'),
+            fit: BoxFit.cover,
+          ),
+        ),
+        child: SafeArea(
+          child: Column(
+            children: [
+              // Header with back button
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.9),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.1),
+                      blurRadius: 4,
+                      offset: const Offset(0, 2),
                     ),
-                  ),
-                  const Spacer(),
-                  if (!_loading && _bookmarks.isNotEmpty)
-                    IconButton(
-                      onPressed: _loadBookmarks,
-                      icon: const Icon(Icons.refresh),
-                      color: const Color(0xFF3A567A),
-                    ),
-                ],
-              ),
-            ),
-
-            // Search Bar
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              child: TextField(
-                controller: _searchController,
-                decoration: InputDecoration(
-                  hintText: 'Search bookmarks...',
-                  prefixIcon: const Icon(Icons.search),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(15),
-                  ),
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+                  ],
                 ),
-                onChanged: (value) => setState(() {}),
-              ),
-            ),
-
-            // Bookmark List
-            Expanded(
-              child: _loading
-                  ? const Center(
-                      child: CircularProgressIndicator(
+                child: Row(
+                  children: [
+                    IconButton(
+                      onPressed: () {
+                        Navigator.pop(context);
+                      },
+                      icon: const Icon(
+                        Icons.arrow_back_ios,
                         color: Color(0xFF3A567A),
                       ),
-                    )
-                  : _error != null
-                      ? Center(
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              const Icon(Icons.error, size: 60, color: Colors.red),
-                              const SizedBox(height: 16),
-                              Text(
-                                _error!,
-                                textAlign: TextAlign.center,
-                                style: const TextStyle(
-                                  fontSize: 16,
-                                  color: Colors.black54,
-                                ),
-                              ),
-                              const SizedBox(height: 16),
-                              ElevatedButton(
-                                onPressed: _loadBookmarks,
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: Color(0xFF3A567A),
-                                ),
-                                child: const Text(
-                                  'Try Again',
-                                  style: TextStyle(color: Colors.white),
-                                ),
-                              ),
-                            ],
+                    ),
+                    const SizedBox(width: 8),
+                    const Text(
+                      'Bookmarks',
+                      style: TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.w700,
+                        color: Color(0xFF3A567A),
+                        fontFamily: 'Kodchasan',
+                      ),
+                    ),
+                    const Spacer(),
+                    if (!_loading && _bookmarks.isNotEmpty)
+                      Container(
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF3A567A),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: IconButton(
+                          onPressed: _loadBookmarks,
+                          icon: const Icon(
+                            Icons.refresh,
+                            color: Colors.white,
                           ),
-                        )
-                      : _filteredBookmarks.isEmpty
-                          ? Center(
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+
+              // Stats banner
+              if (_bookmarks.isNotEmpty)
+                Container(
+                  margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.9),
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(color: const Color(0xFF3A567A), width: 1),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.1),
+                        blurRadius: 8,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            'Total Bookmark',
+                            style: TextStyle(
+                              color: Color(0xFF3A567A),
+                              fontSize: 14,
+                              fontFamily: 'Jost',
+                              fontWeight: FontWeight.w300,
+                            ),
+                          ),
+                          Text(
+                            '${_bookmarks.length} video${_bookmarks.length != 1 ? 's' : ''}',
+                            style: const TextStyle(
+                              color: Color(0xFF3A567A),
+                              fontSize: 24,
+                              fontFamily: 'Kodchasan',
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
+                      ),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF3A567A),
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: const Text(
+                          'Semua',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 14,
+                            fontFamily: 'Jost',
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
+              // Search Bar
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                child: Container(
+                  height: 50,
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.9),
+                    borderRadius: BorderRadius.circular(15),
+                    border: Border.all(color: const Color(0xFF3A567A), width: 1),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.1),
+                        blurRadius: 4,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(
+                        Icons.search,
+                        color: Color(0xFF3A567A),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: TextField(
+                          controller: _searchController,
+                          decoration: const InputDecoration(
+                            hintText: 'Search bookmarks...',
+                            border: InputBorder.none,
+                            hintStyle: TextStyle(
+                              color: Color(0x803A567A),
+                              fontSize: 14,
+                              fontFamily: 'Jost',
+                            ),
+                          ),
+                          onChanged: (value) => setState(() {}),
+                          style: const TextStyle(
+                            color: Color(0xFF3A567A),
+                            fontSize: 14,
+                            fontFamily: 'Jost',
+                          ),
+                        ),
+                      ),
+                      if (_searchController.text.isNotEmpty)
+                        IconButton(
+                          onPressed: () {
+                            _searchController.clear();
+                            setState(() {});
+                          },
+                          icon: const Icon(
+                            Icons.clear,
+                            color: Color(0xFF3A567A),
+                            size: 20,
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+              ),
+
+              // Bookmark List
+              Expanded(
+                child: _loading
+                    ? Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            CircularProgressIndicator(
+                              color: const Color(0xFF3A567A),
+                              strokeWidth: 3,
+                            ),
+                            const SizedBox(height: 16),
+                            const Text(
+                              'Loading bookmarks...',
+                              style: TextStyle(
+                                color: Color(0xFF3A567A),
+                                fontSize: 16,
+                                fontFamily: 'Jost',
+                              ),
+                            ),
+                          ],
+                        ),
+                      )
+                    : _error != null
+                        ? Center(
+                            child: Container(
+                              padding: const EdgeInsets.all(24),
+                              margin: const EdgeInsets.symmetric(horizontal: 24),
+                              decoration: BoxDecoration(
+                                color: Colors.white.withOpacity(0.9),
+                                borderRadius: BorderRadius.circular(20),
+                                border: Border.all(color: Colors.red, width: 1),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withOpacity(0.1),
+                                    blurRadius: 8,
+                                    offset: const Offset(0, 4),
+                                  ),
+                                ],
+                              ),
                               child: Column(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
                                   const Icon(
-                                    Icons.bookmark_border,
-                                    size: 80,
-                                    color: Color(0xFF3A567A),
+                                    Icons.error_outline,
+                                    size: 60,
+                                    color: Colors.red,
                                   ),
                                   const SizedBox(height: 16),
                                   Text(
-                                    _bookmarks.isEmpty
-                                        ? 'No bookmarks yet'
-                                        : 'No matching bookmarks',
+                                    _error!,
+                                    textAlign: TextAlign.center,
                                     style: const TextStyle(
-                                      fontSize: 18,
+                                      fontSize: 16,
                                       color: Color(0xFF3A567A),
+                                      fontFamily: 'Jost',
                                     ),
                                   ),
-                                  if (_bookmarks.isEmpty)
-                                    Padding(
-                                      padding: const EdgeInsets.only(top: 16),
-                                      child: ElevatedButton(
-                                        onPressed: () {
-                                          // Navigate to homepage or search
-                                          Navigator.pop(context);
-                                        },
-                                        style: ElevatedButton.styleFrom(
-                                          backgroundColor: Color(0xFF3A567A),
-                                        ),
-                                        child: const Text(
-                                          'Explore Videos',
-                                          style: TextStyle(color: Colors.white),
-                                        ),
+                                  const SizedBox(height: 20),
+                                  ElevatedButton(
+                                    onPressed: _loadBookmarks,
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: const Color(0xFF3A567A),
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 32, vertical: 12),
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(20),
                                       ),
                                     ),
+                                    child: const Text(
+                                      'Try Again',
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 16,
+                                        fontFamily: 'Jost',
+                                      ),
+                                    ),
+                                  ),
                                 ],
                               ),
-                            )
-                          : ListView.builder(
-                              padding: const EdgeInsets.all(16),
-                              itemCount: _filteredBookmarks.length,
-                              itemBuilder: (context, index) {
-                                final bookmark = _filteredBookmarks[index];
-                                
-                                // Wrap with GestureDetector to make it clickable
-                                return GestureDetector(
-                                  onTap: () {
-                                    _navigateToVideoPlayerFromBookmark(bookmark);
-                                  },
-                                  child: _BookmarkItem(
-                                    bookmark: bookmark,
-                                    onRemove: () => _removeBookmark(bookmark['idVideo']),
-                                  ),
-                                );
-                              },
                             ),
-            ),
-          ],
+                          )
+                        : _filteredBookmarks.isEmpty
+                            ? Center(
+                                child: Container(
+                                  padding: const EdgeInsets.all(32),
+                                  margin: const EdgeInsets.symmetric(horizontal: 24),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white.withOpacity(0.9),
+                                    borderRadius: BorderRadius.circular(20),
+                                    border: Border.all(color: const Color(0xFF3A567A), width: 1),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: Colors.black.withOpacity(0.1),
+                                        blurRadius: 8,
+                                        offset: const Offset(0, 4),
+                                      ),
+                                    ],
+                                  ),
+                                  child: Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Icon(
+                                        _bookmarks.isEmpty
+                                            ? Icons.bookmark_border
+                                            : Icons.search_off,
+                                        size: 80,
+                                        color: const Color(0xFF3A567A).withOpacity(0.5),
+                                      ),
+                                      const SizedBox(height: 16),
+                                      Text(
+                                        _bookmarks.isEmpty
+                                            ? 'No bookmarks yet'
+                                            : 'No matching bookmarks',
+                                        style: const TextStyle(
+                                          fontSize: 20,
+                                          color: Color(0xFF3A567A),
+                                          fontFamily: 'Kodchasan',
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                        textAlign: TextAlign.center,
+                                      ),
+                                      const SizedBox(height: 8),
+                                      Text(
+                                        _bookmarks.isEmpty
+                                            ? 'Tap the bookmark icon on videos to save them here'
+                                            : 'Try a different search term',
+                                        style: const TextStyle(
+                                          fontSize: 14,
+                                          color: Colors.grey,
+                                          fontFamily: 'Jost',
+                                        ),
+                                        textAlign: TextAlign.center,
+                                      ),
+                                      const SizedBox(height: 20),
+                                      if (_bookmarks.isEmpty)
+                                        ElevatedButton(
+                                          onPressed: () {
+                                            Navigator.pop(context);
+                                          },
+                                          style: ElevatedButton.styleFrom(
+                                            backgroundColor: const Color(0xFF3A567A),
+                                            padding: const EdgeInsets.symmetric(
+                                                horizontal: 32, vertical: 12),
+                                            shape: RoundedRectangleBorder(
+                                              borderRadius: BorderRadius.circular(20),
+                                            ),
+                                          ),
+                                          child: const Text(
+                                            'Explore Videos',
+                                            style: TextStyle(
+                                              color: Colors.white,
+                                              fontSize: 16,
+                                              fontFamily: 'Jost',
+                                            ),
+                                          ),
+                                        ),
+                                    ],
+                                  ),
+                                ),
+                              )
+                            : RefreshIndicator(
+                                onRefresh: _loadBookmarks,
+                                color: const Color(0xFF3A567A),
+                                backgroundColor: Colors.white.withOpacity(0.7),
+                                child: ListView.builder(
+                                  padding: const EdgeInsets.all(16),
+                                  itemCount: _filteredBookmarks.length,
+                                  itemBuilder: (context, index) {
+                                    final bookmark = _filteredBookmarks[index];
+                                    return GestureDetector(
+                                      onTap: () {
+                                        _navigateToVideoPlayerFromBookmark(bookmark);
+                                      },
+                                      child: _BookmarkItem(
+                                        bookmark: bookmark,
+                                        onRemove: () => _removeBookmark(bookmark['idVideo']),
+                                      ),
+                                    );
+                                  },
+                                ),
+                              ),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -284,55 +513,109 @@ class _BookmarkItem extends StatelessWidget {
     return path.startsWith('http') ? path : 'http://localhost:3000$path';
   }
 
+  String _formatDate(String? dateString) {
+    if (dateString == null || dateString.isEmpty) return '';
+    try {
+      final date = DateTime.tryParse(dateString);
+      if (date == null) return dateString;
+      
+      final now = DateTime.now();
+      final difference = now.difference(date);
+      
+      if (difference.inDays == 0) {
+        return 'Today';
+      } else if (difference.inDays == 1) {
+        return 'Yesterday';
+      } else if (difference.inDays < 7) {
+        return '${difference.inDays} days ago';
+      } else {
+        return '${date.day}/${date.month}/${date.year}';
+      }
+    } catch (e) {
+      return dateString;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final title = bookmark['title'] ?? 'No Title';
     final uploader = bookmark['uploaderName'] ?? 'Unknown';
-    final date = bookmark['sentDate'] ?? '';
+    final date = _formatDate(bookmark['sentDate']?.toString());
     final imageUrl = _getImageUrl(bookmark['thumbnailPath']);
 
-    // Create the main content widget
-    Widget content = Container(
+    return Container(
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(16),
-        color: Colors.white,
+        color: Colors.white.withOpacity(0.9),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(width: 1, color: const Color(0xFF3A567A).withOpacity(0.3)),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withOpacity(0.1),
-            blurRadius: 10,
-            offset: const Offset(0, 2),
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 8,
+            offset: const Offset(0, 4),
           ),
         ],
       ),
       child: Row(
         children: [
-          // Thumbnail with error handling
+          // Thumbnail
           Container(
             width: 120,
-            height: 80,
+            height: 100,
             decoration: BoxDecoration(
-              borderRadius: const BorderRadius.horizontal(
-                left: Radius.circular(16),
+              borderRadius: const BorderRadius.only(
+                topLeft: Radius.circular(20),
+                bottomLeft: Radius.circular(20),
               ),
               color: Colors.grey[300],
+              border: Border.all(color: const Color(0xFF3A567A).withOpacity(0.3)),
             ),
             child: ClipRRect(
-              borderRadius: const BorderRadius.horizontal(
-                left: Radius.circular(16),
+              borderRadius: const BorderRadius.only(
+                topLeft: Radius.circular(20),
+                bottomLeft: Radius.circular(20),
               ),
               child: Image.network(
                 imageUrl,
                 width: 120,
-                height: 80,
+                height: 100,
                 fit: BoxFit.cover,
+                loadingBuilder: (context, child, loadingProgress) {
+                  if (loadingProgress == null) return child;
+                  return Container(
+                    color: Colors.grey[300],
+                    child: Center(
+                      child: CircularProgressIndicator(
+                        color: const Color(0xFF3A567A),
+                        value: loadingProgress.expectedTotalBytes != null
+                            ? loadingProgress.cumulativeBytesLoaded /
+                                loadingProgress.expectedTotalBytes!
+                            : null,
+                      ),
+                    ),
+                  );
+                },
                 errorBuilder: (context, error, stackTrace) {
                   return Container(
                     color: Colors.grey[300],
-                    child: const Icon(
-                      Icons.video_library,
-                      color: Colors.grey,
-                      size: 40,
+                    child: const Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.video_library,
+                          color: Colors.grey,
+                          size: 40,
+                        ),
+                        SizedBox(height: 4),
+                        Text(
+                          'No Thumbnail',
+                          style: TextStyle(
+                            color: Colors.grey,
+                            fontSize: 10,
+                          ),
+                        ),
+                      ],
                     ),
                   );
                 },
@@ -353,25 +636,52 @@ class _BookmarkItem extends StatelessWidget {
                     overflow: TextOverflow.ellipsis,
                     style: const TextStyle(
                       fontSize: 16,
-                      fontWeight: FontWeight.w500,
+                      fontWeight: FontWeight.w600,
+                      fontFamily: 'Jost',
+                      color: Colors.black,
                     ),
                   ),
-                  const SizedBox(height: 4),
-                  Text(
-                    'By: $uploader',
-                    style: const TextStyle(
-                      fontSize: 14,
-                      color: Colors.grey,
-                    ),
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.person,
+                        size: 14,
+                        color: Colors.grey[600],
+                      ),
+                      const SizedBox(width: 4),
+                      Expanded(
+                        child: Text(
+                          uploader,
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.grey[600],
+                            fontFamily: 'Jost',
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
                   ),
                   if (date.isNotEmpty) ...[
                     const SizedBox(height: 4),
-                    Text(
-                      date,
-                      style: const TextStyle(
-                        fontSize: 12,
-                        color: Colors.grey,
-                      ),
+                    Row(
+                      children: [
+                        Icon(
+                          Icons.calendar_today,
+                          size: 14,
+                          color: Colors.grey[600],
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          date,
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.grey[600],
+                            fontFamily: 'Jost',
+                          ),
+                        ),
+                      ],
                     ),
                   ],
                 ],
@@ -382,11 +692,22 @@ class _BookmarkItem extends StatelessWidget {
           // Remove button
           IconButton(
             onPressed: onRemove,
-            icon: const Icon(Icons.bookmark_remove, color: Colors.red),
+            icon: Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: Colors.red.shade50,
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: Colors.red),
+              ),
+              child: const Icon(
+                Icons.bookmark_remove,
+                color: Colors.red,
+                size: 24,
+              ),
+            ),
           ),
         ],
       ),
     );
-    return content;
   }
 }

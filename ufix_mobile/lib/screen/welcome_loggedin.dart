@@ -11,7 +11,12 @@ class WelcomeLoggedin extends StatelessWidget {
       body: Container(
         width: MediaQuery.of(context).size.width,
         height: MediaQuery.of(context).size.height,
-        color: const Color(0xFFF7F7F7),
+        decoration: const BoxDecoration(
+          image: DecorationImage(
+            image: AssetImage('Asset/bg-welcome.png'),
+            fit: BoxFit.cover,
+          ),
+        ),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.end,
           crossAxisAlignment: CrossAxisAlignment.center,
@@ -77,7 +82,7 @@ class WelcomeLoggedin extends StatelessWidget {
                 children: [
                   // Tombol Masuk
                   GestureDetector(
-                    onTap: (){
+                    onTap: () {
                       Navigator.pushNamed(context, '/home');
                     },
                     child: Container(

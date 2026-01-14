@@ -221,245 +221,704 @@ class _CommentsScreenState extends State<CommentsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        backgroundColor: const Color(0xFF38587C),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => Navigator.pop(context),
+      body: Container(
+        width: MediaQuery.of(context).size.width,
+        height: MediaQuery.of(context).size.height,
+        decoration: const BoxDecoration(
+          image: DecorationImage(
+            image: AssetImage('Asset/bg-app.png'),
+            fit: BoxFit.cover,
+          ),
         ),
-        title: const Text('Comments', style: TextStyle(fontFamily: 'Jost')),
-      ),
-      body: _loading
-          ? const Center(child: CircularProgressIndicator())
-          : _error
-              ? Center(
-                  child: Column(mainAxisSize: MainAxisSize.min, children: [
-                  const Text('Failed to load comments'),
-                  const SizedBox(height: 8),
-                  ElevatedButton(onPressed: _fetchComments, child: const Text('Retry'))
-                ]))
-              : Column(
+        child: SafeArea(
+          child: Column(
+            children: [
+              // Custom AppBar
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.9),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.1),
+                      blurRadius: 4,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: Row(
                   children: [
-                    Expanded(
-                      child: _comments.isEmpty
-                          ? const Center(child: Text('No comments yet'))
-                          : ListView.separated(
-                              padding: const EdgeInsets.symmetric(vertical: 12),
-                              itemCount: _comments.length,
-                              separatorBuilder: (_, __) => const SizedBox(height: 12),
-                              itemBuilder: (context, index) {
-                                final c = _comments[index];
-                                final id = _toInt(c['idKomentar']);
-                                final isExpanded = _expandedComments.contains(id);
+                    IconButton(
+                      icon: const Icon(
+                        Icons.arrow_back_ios,
+                        color: Color(0xFF3A567A),
+                      ),
+                      onPressed: () => Navigator.pop(context),
+                    ),
+                    const SizedBox(width: 8),
+                    const Text(
+                      'Comments',
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.w600,
+                        color: Color(0xFF3A567A),
+                        fontFamily: 'Kodchasan',
+                      ),
+                    ),
+                    const Spacer(),
+                    IconButton(
+                      icon: const Icon(
+                        Icons.refresh,
+                        color: Color(0xFF3A567A),
+                      ),
+                      onPressed: _fetchComments,
+                    ),
+                  ],
+                ),
+              ),
 
-                                final currentUser = AuthManager.currentUser;
-                                final currentUserIdStr = currentUser?.id?.toString();
-                                final cIdPengomentar = c['idPengomentar']?.toString();
-                                final cPengomentarId = c['pengomentarId']?.toString();
-                                final shownPengomentarName = c['pengomentarName'] ??
-                                    ((currentUser != null && (cIdPengomentar == currentUserIdStr || cPengomentarId == currentUserIdStr))
-                                        ? currentUser.displayName
-                                        : null) ??
-                                    (cPengomentarId ?? cIdPengomentar ?? 'Guest');
+              // Comments counter
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.9),
+                  border: Border(
+                    bottom: BorderSide(color: const Color(0xFF3A567A).withOpacity(0.2)),
+                  ),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(
+                      Icons.comment,
+                      color: Color(0xFF3A567A),
+                      size: 20,
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      '${_comments.length} Comments',
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w500,
+                        color: Color(0xFF3A567A),
+                        fontFamily: 'Jost',
+                      ),
+                    ),
+                  ],
+                ),
+              ),
 
-                                return Column(
-                                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                                  children: [
-                                    Container(
-                                      margin: const EdgeInsets.symmetric(horizontal: 12),
-                                      padding: const EdgeInsets.all(12),
-                                      decoration: BoxDecoration(
-                                        color: const Color(0xFFE6F0FF),
-                                        border: Border.all(color: const Color(0xFF38587C)),
+              // Main content area
+              Expanded(
+                child: _loading
+                    ? Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            CircularProgressIndicator(
+                              color: const Color(0xFF3A567A),
+                              strokeWidth: 3,
+                            ),
+                            const SizedBox(height: 16),
+                            const Text(
+                              'Loading comments...',
+                              style: TextStyle(
+                                color: Color(0xFF3A567A),
+                                fontSize: 16,
+                                fontFamily: 'Jost',
+                              ),
+                            ),
+                          ],
+                        ),
+                      )
+                    : _error
+                        ? Center(
+                            child: Container(
+                              padding: const EdgeInsets.all(24),
+                              margin: const EdgeInsets.symmetric(horizontal: 24),
+                              decoration: BoxDecoration(
+                                color: Colors.white.withOpacity(0.9),
+                                borderRadius: BorderRadius.circular(20),
+                                border: Border.all(color: Colors.red, width: 1),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withOpacity(0.1),
+                                    blurRadius: 8,
+                                    offset: const Offset(0, 4),
+                                  ),
+                                ],
+                              ),
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  const Icon(
+                                    Icons.error_outline,
+                                    color: Colors.red,
+                                    size: 60,
+                                  ),
+                                  const SizedBox(height: 16),
+                                  const Text(
+                                    'Failed to load comments',
+                                    style: TextStyle(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.w600,
+                                      color: Color(0xFF3A567A),
+                                      fontFamily: 'Kodchasan',
+                                    ),
+                                    textAlign: TextAlign.center,
+                                  ),
+                                  const SizedBox(height: 8),
+                                  const Text(
+                                    'Please check your connection and try again',
+                                    style: TextStyle(
+                                      color: Colors.grey,
+                                      fontSize: 14,
+                                      fontFamily: 'Jost',
+                                    ),
+                                    textAlign: TextAlign.center,
+                                  ),
+                                  const SizedBox(height: 20),
+                                  ElevatedButton(
+                                    onPressed: _fetchComments,
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: const Color(0xFF3A567A),
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 32, vertical: 12),
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(20),
                                       ),
-                                      child: Row(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
-                                        children: [
-                                          CircleAvatar(
-                                            radius: 24,
-                                            backgroundColor: Colors.grey.shade300,
-                                            child: const Icon(Icons.person, size: 20, color: Colors.white),
+                                    ),
+                                    child: const Text(
+                                      'Retry',
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 16,
+                                        fontFamily: 'Jost',
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          )
+                        : _comments.isEmpty
+                            ? Center(
+                                child: Container(
+                                  padding: const EdgeInsets.all(32),
+                                  margin: const EdgeInsets.symmetric(horizontal: 24),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white.withOpacity(0.9),
+                                    borderRadius: BorderRadius.circular(20),
+                                    border:
+                                        Border.all(color: const Color(0xFF3A567A), width: 1),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: Colors.black.withOpacity(0.1),
+                                        blurRadius: 8,
+                                        offset: const Offset(0, 4),
+                                      ),
+                                    ],
+                                  ),
+                                  child: Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Icon(
+                                        Icons.comment_outlined,
+                                        size: 80,
+                                        color: const Color(0xFF3A567A).withOpacity(0.5),
+                                      ),
+                                      const SizedBox(height: 16),
+                                      const Text(
+                                        'No comments yet',
+                                        style: TextStyle(
+                                          fontSize: 20,
+                                          fontWeight: FontWeight.w600,
+                                          color: Color(0xFF3A567A),
+                                          fontFamily: 'Kodchasan',
+                                        ),
+                                        textAlign: TextAlign.center,
+                                      ),
+                                      const SizedBox(height: 8),
+                                      const Text(
+                                        'Be the first to comment on this video',
+                                        style: TextStyle(
+                                          color: Colors.grey,
+                                          fontSize: 14,
+                                          fontFamily: 'Jost',
+                                        ),
+                                        textAlign: TextAlign.center,
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              )
+                            : RefreshIndicator(
+                                onRefresh: _fetchComments,
+                                color: const Color(0xFF3A567A),
+                                backgroundColor: Colors.white.withOpacity(0.7),
+                                child: ListView.separated(
+                                  padding: const EdgeInsets.symmetric(vertical: 12),
+                                  itemCount: _comments.length,
+                                  separatorBuilder: (_, __) => const SizedBox(height: 12),
+                                  itemBuilder: (context, index) {
+                                    final c = _comments[index];
+                                    final id = _toInt(c['idKomentar']);
+                                    final isExpanded = _expandedComments.contains(id);
+
+                                    final currentUser = AuthManager.currentUser;
+                                    final currentUserIdStr = currentUser?.id?.toString();
+                                    final cIdPengomentar = c['idPengomentar']?.toString();
+                                    final cPengomentarId = c['pengomentarId']?.toString();
+                                    final shownPengomentarName = c['pengomentarName'] ??
+                                        ((currentUser != null &&
+                                                (cIdPengomentar == currentUserIdStr ||
+                                                    cPengomentarId == currentUserIdStr))
+                                            ? currentUser.displayName
+                                            : null) ??
+                                        (cPengomentarId ?? cIdPengomentar ?? 'Guest');
+
+                                    return Column(
+                                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                                      children: [
+                                        // Main comment
+                                        Container(
+                                          margin: const EdgeInsets.symmetric(horizontal: 16),
+                                          padding: const EdgeInsets.all(16),
+                                          decoration: BoxDecoration(
+                                            color: Colors.white.withOpacity(0.9),
+                                            borderRadius: BorderRadius.circular(20),
+                                            border: Border.all(
+                                                color: const Color(0xFF3A567A), width: 1),
+                                            boxShadow: [
+                                              BoxShadow(
+                                                color: Colors.black.withOpacity(0.1),
+                                                blurRadius: 8,
+                                                offset: const Offset(0, 4),
+                                              ),
+                                            ],
                                           ),
-                                          const SizedBox(width: 12),
-                                          Expanded(
+                                          child: Row(
+                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            children: [
+                                              CircleAvatar(
+                                                radius: 20,
+                                                backgroundColor: const Color(0xFF3A567A),
+                                                child: const Icon(
+                                                  Icons.person,
+                                                  size: 20,
+                                                  color: Colors.white,
+                                                ),
+                                              ),
+                                              const SizedBox(width: 12),
+                                              Expanded(
+                                                child: Column(
+                                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                                  children: [
+                                                    Row(
+                                                      mainAxisAlignment:
+                                                          MainAxisAlignment.spaceBetween,
+                                                      children: [
+                                                        Text(
+                                                          shownPengomentarName,
+                                                          style: const TextStyle(
+                                                            fontWeight: FontWeight.w700,
+                                                            fontSize: 16,
+                                                            color: Color(0xFF3A567A),
+                                                            fontFamily: 'Jost',
+                                                          ),
+                                                        ),
+                                                        Text(
+                                                          _formatDate(c['sentDate']),
+                                                          style: const TextStyle(
+                                                            fontSize: 12,
+                                                            color: Colors.grey,
+                                                            fontFamily: 'Jost',
+                                                          ),
+                                                        ),
+                                                      ],
+                                                    ),
+                                                    const SizedBox(height: 8),
+                                                    Text(
+                                                      c['isi'] ?? '',
+                                                      style: const TextStyle(
+                                                        fontSize: 14,
+                                                        color: Colors.black87,
+                                                        fontFamily: 'Jost',
+                                                      ),
+                                                    ),
+                                                    const SizedBox(height: 8),
+                                                    Row(
+                                                      mainAxisAlignment:
+                                                          MainAxisAlignment.end,
+                                                      children: [
+                                                        Container(
+                                                          decoration: BoxDecoration(
+                                                            color: const Color(0xFF3A567A),
+                                                            borderRadius:
+                                                                BorderRadius.circular(20),
+                                                          ),
+                                                          child: TextButton(
+                                                            onPressed: () async {
+                                                              if (isExpanded) {
+                                                                setState(() => _expandedComments
+                                                                    .remove(id));
+                                                              } else {
+                                                                setState(() => _expandedComments
+                                                                    .add(id));
+                                                                _ensureReplyController(id);
+                                                                await _fetchReplies(id);
+                                                              }
+                                                            },
+                                                            child: Text(
+                                                              isExpanded
+                                                                  ? 'Hide replies'
+                                                                  : 'Show replies',
+                                                              style: const TextStyle(
+                                                                color: Colors.white,
+                                                                fontSize: 14,
+                                                                fontFamily: 'Jost',
+                                                              ),
+                                                            ),
+                                                          ),
+                                                        ),
+                                                      ],
+                                                    ),
+                                                  ],
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+
+                                        // Replies section
+                                        if (isExpanded)
+                                          Container(
+                                            width: double.infinity,
+                                            margin: const EdgeInsets.fromLTRB(32, 8, 16, 0),
+                                            padding: const EdgeInsets.all(16),
+                                            decoration: BoxDecoration(
+                                              color: Colors.white.withOpacity(0.8),
+                                              borderRadius: BorderRadius.circular(15),
+                                              border: Border.all(
+                                                  color: const Color(0xFF3A567A)
+                                                      .withOpacity(0.3)),
+                                              boxShadow: [
+                                                BoxShadow(
+                                                  color: Colors.black.withOpacity(0.05),
+                                                  blurRadius: 6,
+                                                  offset: const Offset(0, 2),
+                                                ),
+                                              ],
+                                            ),
                                             child: Column(
                                               crossAxisAlignment: CrossAxisAlignment.start,
                                               children: [
-                                                Row(
-                                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                                  children: [
-                                                    Text(
-                                                      shownPengomentarName,
-                                                      style: const TextStyle(fontWeight: FontWeight.w700),
+                                                if ((_replies[id] ?? []).isEmpty)
+                                                  const Padding(
+                                                    padding: EdgeInsets.symmetric(vertical: 8),
+                                                    child: Text(
+                                                      'No replies yet',
+                                                      style: TextStyle(
+                                                        color: Colors.grey,
+                                                        fontFamily: 'Jost',
+                                                      ),
                                                     ),
-                                                    Text(
-                                                      _formatDate(c['sentDate']),
-                                                      style: const TextStyle(fontSize: 12),
-                                                    ),
-                                                  ],
-                                                ),
-                                                const SizedBox(height: 8),
-                                                Text(c['isi'] ?? '', style: const TextStyle(fontSize: 16)),
-                                                const SizedBox(height: 8),
+                                                  )
+                                                else
+                                                  ...(_replies[id] ?? []).map((r) {
+                                                    final rIdPengirim =
+                                                        r['idPengirim']?.toString();
+                                                    final rPengirimId =
+                                                        r['pengirimId']?.toString();
+                                                    final shownPengirimName =
+                                                        r['pengirimName'] ??
+                                                            ((currentUser != null &&
+                                                                    (rIdPengirim ==
+                                                                            currentUserIdStr ||
+                                                                        rPengirimId ==
+                                                                            currentUserIdStr))
+                                                                ? currentUser.displayName
+                                                                : null) ??
+                                                            (rPengirimId ??
+                                                                rIdPengirim ??
+                                                                'Guest');
+
+                                                    return Padding(
+                                                      padding: const EdgeInsets.symmetric(
+                                                          vertical: 8),
+                                                      child: Row(
+                                                        crossAxisAlignment:
+                                                            CrossAxisAlignment.start,
+                                                        children: [
+                                                          CircleAvatar(
+                                                            radius: 16,
+                                                            backgroundColor:
+                                                                const Color(0xFF4B92DB),
+                                                            child: const Icon(
+                                                              Icons.person,
+                                                              size: 16,
+                                                              color: Colors.white,
+                                                            ),
+                                                          ),
+                                                          const SizedBox(width: 12),
+                                                          Expanded(
+                                                            child: Column(
+                                                              crossAxisAlignment:
+                                                                  CrossAxisAlignment.start,
+                                                              children: [
+                                                                Row(
+                                                                  mainAxisAlignment:
+                                                                      MainAxisAlignment
+                                                                          .spaceBetween,
+                                                                  children: [
+                                                                    Text(
+                                                                      shownPengirimName,
+                                                                      style: const TextStyle(
+                                                                        fontWeight:
+                                                                            FontWeight.w600,
+                                                                        fontSize: 14,
+                                                                        color: Color(0xFF3A567A),
+                                                                        fontFamily: 'Jost',
+                                                                      ),
+                                                                    ),
+                                                                    Text(
+                                                                      _formatDate(
+                                                                          r['sentDate']),
+                                                                      style: const TextStyle(
+                                                                        fontSize: 10,
+                                                                        color: Colors.grey,
+                                                                        fontFamily: 'Jost',
+                                                                      ),
+                                                                    ),
+                                                                  ],
+                                                                ),
+                                                                const SizedBox(height: 6),
+                                                                Builder(builder: (_) {
+                                                                  final replyToName = r[
+                                                                          'replyToName'] ??
+                                                                      r['replyToId']
+                                                                          ?.toString();
+                                                                  final content = (replyToName !=
+                                                                          null)
+                                                                      ? '@$replyToName ${r['isi'] ?? ''}'
+                                                                      : (r['isi'] ?? '');
+                                                                  return Text(
+                                                                    content,
+                                                                    style: const TextStyle(
+                                                                      fontSize: 13,
+                                                                      color: Colors.black87,
+                                                                      fontFamily: 'Jost',
+                                                                    ),
+                                                                  );
+                                                                }),
+                                                                const SizedBox(height: 6),
+                                                                Row(
+                                                                  children: [
+                                                                    Container(
+                                                                      decoration:
+                                                                          BoxDecoration(
+                                                                        color: const Color(
+                                                                            0xFF4B92DB),
+                                                                        borderRadius:
+                                                                            BorderRadius
+                                                                                .circular(15),
+                                                                      ),
+                                                                      child: TextButton(
+                                                                        onPressed: () {
+                                                                          // set replying-to this specific reply and prefill input with @name
+                                                                          final rid = _toInt(
+                                                                              r['idReply']);
+                                                                          final name =
+                                                                              shownPengirimName;
+                                                                          final controller =
+                                                                              _ensureReplyController(
+                                                                                  id);
+                                                                          setState(() {
+                                                                            _replyingTo[id] =
+                                                                                (rid > 0)
+                                                                                    ? rid
+                                                                                    : null;
+                                                                            _replyingToName[
+                                                                                id] = name;
+                                                                          });
+                                                                          controller.text =
+                                                                              '@$name ';
+                                                                          controller
+                                                                              .selection =
+                                                                              TextSelection
+                                                                                  .fromPosition(
+                                                                            TextPosition(
+                                                                                offset: controller
+                                                                                    .text
+                                                                                    .length),
+                                                                          );
+                                                                        },
+                                                                        child: const Text(
+                                                                          'Reply',
+                                                                          style: TextStyle(
+                                                                            color:
+                                                                                Colors.white,
+                                                                            fontSize: 12,
+                                                                            fontFamily: 'Jost',
+                                                                          ),
+                                                                        ),
+                                                                      ),
+                                                                    ),
+                                                                  ],
+                                                                ),
+                                                              ],
+                                                            ),
+                                                          ),
+                                                        ],
+                                                      ),
+                                                    );
+                                                  }).toList(),
+
+                                                const SizedBox(height: 12),
                                                 Row(
-                                                  mainAxisAlignment: MainAxisAlignment.end,
                                                   children: [
-                                                    TextButton(
-                                                      onPressed: () async {
-                                                        if (isExpanded) {
-                                                          setState(() => _expandedComments.remove(id));
-                                                        } else {
-                                                          setState(() => _expandedComments.add(id));
-                                                          _ensureReplyController(id);
-                                                          await _fetchReplies(id);
-                                                        }
-                                                      },
-                                                      child: Text(isExpanded ? 'Hide replies' : 'Reply'),
+                                                    Expanded(
+                                                      child: Container(
+                                                        padding: const EdgeInsets.symmetric(
+                                                            horizontal: 12),
+                                                        decoration: BoxDecoration(
+                                                          color: Colors.white,
+                                                          borderRadius:
+                                                              BorderRadius.circular(20),
+                                                          border: Border.all(
+                                                              color:
+                                                                  const Color(0xFF3A567A),
+                                                              width: 1),
+                                                        ),
+                                                        child: TextField(
+                                                          controller:
+                                                              _ensureReplyController(id),
+                                                          decoration: const InputDecoration(
+                                                            hintText: 'Write a reply...',
+                                                            hintStyle: TextStyle(
+                                                              color: Color(0x803A567A),
+                                                              fontFamily: 'Jost',
+                                                            ),
+                                                            border: InputBorder.none,
+                                                          ),
+                                                          style: const TextStyle(
+                                                            fontFamily: 'Jost',
+                                                            fontSize: 14,
+                                                          ),
+                                                        ),
+                                                      ),
+                                                    ),
+                                                    const SizedBox(width: 8),
+                                                    ElevatedButton(
+                                                      style: ElevatedButton.styleFrom(
+                                                        backgroundColor:
+                                                            const Color(0xFF3A567A),
+                                                        padding: const EdgeInsets.symmetric(
+                                                            horizontal: 16, vertical: 12),
+                                                        shape: RoundedRectangleBorder(
+                                                          borderRadius:
+                                                              BorderRadius.circular(20),
+                                                        ),
+                                                      ),
+                                                      onPressed: () => _postReply(id),
+                                                      child: const Text(
+                                                        'Send',
+                                                        style: TextStyle(
+                                                          color: Colors.white,
+                                                          fontFamily: 'Jost',
+                                                        ),
+                                                      ),
                                                     ),
                                                   ],
                                                 ),
                                               ],
                                             ),
                                           ),
-                                        ],
-                                      ),
-                                    ),
-
-                                    if (isExpanded)
-                                      Container(
-                                        width: double.infinity,
-                                        margin: const EdgeInsets.fromLTRB(12, 8, 12, 0),
-                                        padding: const EdgeInsets.all(12),
-                                        decoration: BoxDecoration(
-                                          color: Colors.white,
-                                          borderRadius: BorderRadius.circular(8),
-                                          boxShadow: [
-                                            BoxShadow(
-                                              color: Colors.black.withOpacity(0.05),
-                                              blurRadius: 6,
-                                              offset: const Offset(0, 2),
-                                            ),
-                                          ],
-                                        ),
-                                        child: Column(
-                                          children: [
-                                            if ((_replies[id] ?? []).isEmpty)
-                                              const Padding(
-                                                padding: EdgeInsets.symmetric(vertical: 8),
-                                                child: Text('No replies yet'),
-                                              )
-                                            else
-                                              ...(_replies[id] ?? []).map((r) {
-                                                final rIdPengirim = r['idPengirim']?.toString();
-                                                final rPengirimId = r['pengirimId']?.toString();
-                                                final shownPengirimName = r['pengirimName'] ??
-                                                    ((currentUser != null && (rIdPengirim == currentUserIdStr || rPengirimId == currentUserIdStr))
-                                                        ? currentUser.displayName
-                                                        : null) ??
-                                                    (rPengirimId ?? rIdPengirim ?? 'Guest');
-
-                                                return Padding(
-                                                  padding: const EdgeInsets.symmetric(vertical: 8),
-                                                  child: Row(
-                                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                                    children: [
-                                                      CircleAvatar(
-                                                        radius: 20,
-                                                        backgroundColor: Colors.grey.shade300,
-                                                        child: const Icon(Icons.person, size: 18, color: Colors.white),
-                                                      ),
-                                                      const SizedBox(width: 12),
-                                                      Expanded(
-                                                        child: Column(
-                                                          crossAxisAlignment: CrossAxisAlignment.start,
-                                                          children: [
-                                                            Text(
-                                                              shownPengirimName,
-                                                              style: const TextStyle(fontWeight: FontWeight.w600),
-                                                            ),
-                                                            const SizedBox(height: 6),
-                                                                  // If this reply is replying to another reply, show the target as @Name prefix
-                                                                  Builder(builder: (_) {
-                                                                    final replyToName = r['replyToName'] ?? r['replyToId']?.toString();
-                                                                    final content = (replyToName != null) ? '@$replyToName ${r['isi'] ?? ''}' : (r['isi'] ?? '');
-                                                                    return Text(content);
-                                                                  }),
-                                                                  const SizedBox(height: 6),
-                                                                  Row(children: [
-                                                                    TextButton(
-                                                                      onPressed: () {
-                                                                        // set replying-to this specific reply and prefill input with @name
-                                                                        final rid = _toInt(r['idReply']);
-                                                                        final name = shownPengirimName;
-                                                                        final controller = _ensureReplyController(id);
-                                                                        setState(() {
-                                                                          _replyingTo[id] = (rid > 0) ? rid : null;
-                                                                          _replyingToName[id] = name;
-                                                                        });
-                                                                        controller.text = '@$name ';
-                                                                        controller.selection = TextSelection.fromPosition(TextPosition(offset: controller.text.length));
-                                                                      },
-                                                                      child: const Text('Reply'),
-                                                                    ),
-                                                                  ]),
-                                                          ],
-                                                        ),
-                                                      ),
-                                                    ],
-                                                  ),
-                                                );
-                                              }).toList(),
-
-                                            const SizedBox(height: 8),
-                                            Row(
-                                              children: [
-                                                Expanded(
-                                                  child: TextField(
-                                                    controller: _ensureReplyController(id),
-                                                    decoration: const InputDecoration(hintText: 'Tulis balasan...', border: OutlineInputBorder()),
-                                                  ),
-                                                ),
-                                                const SizedBox(width: 8),
-                                                ElevatedButton(
-                                                  style: ElevatedButton.styleFrom(backgroundColor: const Color(0XFFFF7F00)),
-                                                  onPressed: () => _postReply(id),
-                                                  child: const Text('Kirim'),
-                                                ),
-                                              ],
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                  ],
-                                );
-                              },
-                            ),
-                    ),
-                    SafeArea(
-                      top: false,
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                        color: Colors.white,
-                        child: Row(
-                          children: [
-                            Expanded(
-                              child: TextField(
-                                controller: _controller,
-                                decoration: const InputDecoration(hintText: 'Tulis komentar...', border: OutlineInputBorder()),
+                                      ],
+                                    );
+                                  },
+                                ),
                               ),
+              ),
+
+              // New comment input
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.9),
+                  border: Border(
+                    top: BorderSide(color: const Color(0xFF3A567A).withOpacity(0.3)),
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.1),
+                      blurRadius: 8,
+                      offset: const Offset(0, -4),
+                    ),
+                  ],
+                ),
+                child: Row(
+                  children: [
+                    CircleAvatar(
+                      radius: 20,
+                      backgroundColor: const Color(0xFF3A567A),
+                      child: const Icon(
+                        Icons.person,
+                        size: 20,
+                        color: Colors.white,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(25),
+                          border: Border.all(color: const Color(0xFF3A567A), width: 1),
+                        ),
+                        child: TextField(
+                          controller: _controller,
+                          decoration: const InputDecoration(
+                            hintText: 'Write a comment...',
+                            hintStyle: TextStyle(
+                              color: Color(0x803A567A),
+                              fontFamily: 'Jost',
                             ),
-                            const SizedBox(width: 8),
-                            ElevatedButton(
-                              style: ElevatedButton.styleFrom(backgroundColor: const Color(0XFFFF7F00)),
-                              onPressed: _postComment,
-                              child: const Text('Kirim'),
-                            ),
-                          ],
+                            border: InputBorder.none,
+                          ),
+                          style: const TextStyle(
+                            fontFamily: 'Jost',
+                            fontSize: 14,
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF3A567A),
+                        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                      ),
+                      onPressed: _postComment,
+                      child: const Text(
+                        'Post',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontFamily: 'Jost',
+                          fontSize: 16,
                         ),
                       ),
                     ),
                   ],
                 ),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }

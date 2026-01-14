@@ -192,7 +192,7 @@ const getProfile = async (req, res) => {
     const userId = req.userId;
 
     const [rows] = await dbPromise.query(
-      "SELECT idPengguna, email, displayName, role FROM users WHERE idPengguna = ?",
+      "SELECT idPengguna, email, displayName FROM users WHERE idPengguna = ?",
       [userId]
     );
 

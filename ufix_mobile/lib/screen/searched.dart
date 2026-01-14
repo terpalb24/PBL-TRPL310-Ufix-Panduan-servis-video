@@ -69,165 +69,326 @@ class _SearchedVideosState extends State<SearchedVideos> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Stack(
-        children: [
-          // Background
-          Container(
-            width: MediaQuery.of(context).size.width,
-            height: MediaQuery.of(context).size.height,
-            color: const Color(0xFFF7F7FA),
+      body: Container(
+        width: MediaQuery.of(context).size.width,
+        height: MediaQuery.of(context).size.height,
+        decoration: const BoxDecoration(
+          image: DecorationImage(
+            image: AssetImage('Asset/bg-app.png'),
+            fit: BoxFit.cover,
           ),
-
-          SafeArea(
-            child: Column(
-              children: [
-                // TOP BAR
-                Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 8,
-                  ),
-                  child: Row(
-                    children: [
-                      IconButton(
-                        icon: const Icon(Icons.arrow_back),
-                        onPressed: () => Navigator.pop(context),
-                      ),
-                      const SizedBox(width: 4),
-                      const Text(
-                        'Hasil Pencarian',
-                        style: TextStyle(
-                          color: Colors.black,
-                          fontSize: 18,
-                          fontFamily: 'Kodchasan',
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                      const Spacer(),
-                    ],
-                  ),
+        ),
+        child: SafeArea(
+          child: Column(
+            children: [
+              // Custom AppBar
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.9),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.1),
+                      blurRadius: 4,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
                 ),
-
-                // Query & filter info
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          _query.isEmpty ? '' : '"$_query"',
-                          style: const TextStyle(
-                            color: Color(0xFF3A567A),
-                            fontSize: 12,
-                            fontFamily: 'Jost',
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
+                child: Row(
+                  children: [
+                    IconButton(
+                      icon: const Icon(
+                        Icons.arrow_back_ios,
+                        color: Color(0xFF3A567A),
                       ),
-                      const SizedBox(width: 8),
-                      _buildActiveFilterChip('Semua'),
-                    ],
-                  ),
-                ),
-
-                const SizedBox(height: 8),
-
-                // Body
-                Expanded(
-                  child: Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: _buildBody(),
-                  ),
-                ),
-
-                if (!_isLoading && _error.isEmpty && _videos.isNotEmpty)
-                  Padding(
-                    padding: const EdgeInsets.only(bottom: 16),
-                    child: GestureDetector(
-                      onTap: _searchVideos,
-                      child: Container(
-                        width: 120,
-                        height: 32,
-                        decoration: ShapeDecoration(
-                          gradient: const LinearGradient(
-                            begin: Alignment(0.50, 1.00),
-                            end: Alignment(0.50, 0.00),
-                            colors: [Color(0xFFADE7F7), Color(0xFFF7F7FA)],
-                          ),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(30),
-                          ),
-                        ),
-                        child: const Center(
-                          child: Text(
-                            'Muat Ulang',
-                            style: TextStyle(
-                              color: Colors.black,
-                              fontSize: 13,
-                              fontFamily: 'Jost',
-                              fontWeight: FontWeight.w400,
-                            ),
-                          ),
-                        ),
+                      onPressed: () => Navigator.pop(context),
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      'Hasil Pencarian',
+                      style: const TextStyle(
+                        color: Color(0xFF3A567A),
+                        fontSize: 20,
+                        fontFamily: 'Kodchasan',
+                        fontWeight: FontWeight.w600,
                       ),
                     ),
+                    const Spacer(),
+                  ],
+                ),
+              ),
+
+              // Search query display
+              Container(
+                margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.9),
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: const Color(0xFF3A567A), width: 1),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.1),
+                      blurRadius: 8,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        const Icon(
+                          Icons.search,
+                          color: Color(0xFF3A567A),
+                          size: 20,
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            _query.isEmpty ? '' : '$_query',
+                            style: const TextStyle(
+                              color: Color(0xFF3A567A),
+                              fontSize: 18,
+                              fontFamily: 'Kodchasan',
+                              fontWeight: FontWeight.w500,
+                            ),
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        _buildActiveFilterChip('Semua'),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      '${_videos.length} hasil ditemukan',
+                      style: const TextStyle(
+                        color: Colors.grey,
+                        fontSize: 14,
+                        fontFamily: 'Jost',
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              // Main content
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: _buildBody(),
+                ),
+              ),
+
+              // Reload button (if there are results)
+              if (!_isLoading && _error.isEmpty && _videos.isNotEmpty)
+                Container(
+                  margin: const EdgeInsets.all(16),
+                  child: ElevatedButton(
+                    onPressed: _searchVideos,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF3A567A),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 32, vertical: 12),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      elevation: 4,
+                      shadowColor: Colors.black.withOpacity(0.2),
+                    ),
+                    child: const Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          Icons.refresh,
+                          color: Colors.white,
+                          size: 20,
+                        ),
+                        SizedBox(width: 8),
+                        Text(
+                          'Muat Ulang',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 16,
+                            fontFamily: 'Jost',
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-              ],
-            ),
+                ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }
 
   Widget _buildBody() {
     if (_isLoading) {
-      return const Center(
-        child: CircularProgressIndicator(color: Color(0xFF3A567A)),
-      );
-    }
-
-    if (_error.isNotEmpty) {
       return Center(
         child: Column(
-          mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Text(
-              _error,
-              style: const TextStyle(
-                color: Colors.black,
-                fontSize: 13,
-                fontFamily: 'Jost',
-                fontWeight: FontWeight.w400,
-              ),
-              textAlign: TextAlign.center,
+            CircularProgressIndicator(
+              color: const Color(0xFF3A567A),
+              strokeWidth: 3,
             ),
-            const SizedBox(height: 12),
-            ElevatedButton(
-              onPressed: _searchVideos,
-              child: const Text('Coba lagi'),
+            const SizedBox(height: 16),
+            const Text(
+              'Mencari video...',
+              style: TextStyle(
+                color: Color(0xFF3A567A),
+                fontSize: 16,
+                fontFamily: 'Jost',
+                fontWeight: FontWeight.w500,
+              ),
             ),
           ],
         ),
       );
     }
 
+    if (_error.isNotEmpty) {
+      return Center(
+        child: Container(
+          padding: const EdgeInsets.all(24),
+          margin: const EdgeInsets.symmetric(horizontal: 16),
+          decoration: BoxDecoration(
+            color: Colors.white.withOpacity(0.9),
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: Colors.red, width: 1),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.1),
+                blurRadius: 8,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(
+                Icons.error_outline,
+                color: Colors.red,
+                size: 60,
+              ),
+              const SizedBox(height: 16),
+              Text(
+                _error,
+                style: const TextStyle(
+                  color: Color(0xFF3A567A),
+                  fontSize: 16,
+                  fontFamily: 'Jost',
+                  fontWeight: FontWeight.w400,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 20),
+              ElevatedButton(
+                onPressed: _searchVideos,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF3A567A),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                ),
+                child: const Text(
+                  'Coba lagi',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 16,
+                    fontFamily: 'Jost',
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
     if (_videos.isEmpty) {
-      return const Center(
-        child: Text(
-          'Tidak ada video yang cocok.',
-          style: TextStyle(
-            color: Colors.black,
-            fontSize: 13,
-            fontFamily: 'Jost',
-            fontWeight: FontWeight.w400,
+      return Center(
+        child: Container(
+          padding: const EdgeInsets.all(32),
+          decoration: BoxDecoration(
+            color: Colors.white.withOpacity(0.9),
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: const Color(0xFF3A567A), width: 1),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.1),
+                blurRadius: 8,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                Icons.search_off,
+                size: 80,
+                color: const Color(0xFF3A567A).withOpacity(0.5),
+              ),
+              const SizedBox(height: 16),
+              const Text(
+                'Tidak ada video yang cocok.',
+                style: TextStyle(
+                  color: Color(0xFF3A567A),
+                  fontSize: 18,
+                  fontFamily: 'Kodchasan',
+                  fontWeight: FontWeight.w600,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 8),
+              const Text(
+                'Coba dengan kata kunci yang berbeda',
+                style: TextStyle(
+                  color: Colors.grey,
+                  fontSize: 14,
+                  fontFamily: 'Jost',
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 20),
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF3A567A),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                ),
+                child: const Text(
+                  'Kembali ke Pencarian',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 16,
+                    fontFamily: 'Jost',
+                  ),
+                ),
+              ),
+            ],
           ),
         ),
       );
     }
 
     return ListView.separated(
+      padding: const EdgeInsets.only(bottom: 16),
       itemCount: _videos.length,
       separatorBuilder: (_, _) => const SizedBox(height: 12),
       itemBuilder: (context, index) {
@@ -239,23 +400,27 @@ class _SearchedVideosState extends State<SearchedVideos> {
 
   Widget _buildActiveFilterChip(String text) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
-      decoration: ShapeDecoration(
-        color: const Color(0xFFF7F7FA),
-        shape: RoundedRectangleBorder(
-          side: const BorderSide(width: 1, color: Color(0xFF3A567A)),
-          borderRadius: BorderRadius.circular(10),
-        ),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      decoration: BoxDecoration(
+        color: const Color(0xFF3A567A),
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 4,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
       child: Row(
         children: [
-          const Icon(Icons.check, size: 14, color: Color(0xFF3A567A)),
-          const SizedBox(width: 4),
+          const Icon(Icons.check, size: 16, color: Colors.white),
+          const SizedBox(width: 6),
           Text(
             text,
             style: const TextStyle(
-              color: Colors.black,
-              fontSize: 11,
+              color: Colors.white,
+              fontSize: 14,
               fontFamily: 'Jost',
               fontWeight: FontWeight.w600,
             ),
@@ -272,52 +437,77 @@ class _SearchedVideosState extends State<SearchedVideos> {
       },
       child: Container(
         width: double.infinity,
-        height: 100,
         padding: const EdgeInsets.all(12),
-        decoration: ShapeDecoration(
-          gradient: const LinearGradient(
-            begin: Alignment(0.98, -0.00),
-            end: Alignment(0.02, 1.00),
-            colors: [Color(0xFFEFF7FC), Color(0xFFF7F7FA)],
-          ),
-          shape: RoundedRectangleBorder(
-            side: const BorderSide(width: 1, color: Color(0x333A567A)),
-            borderRadius: BorderRadius.circular(20),
-          ),
+        decoration: BoxDecoration(
+          color: Colors.white.withOpacity(0.9),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(width: 1, color: const Color(0xFF3A567A).withOpacity(0.3)),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.1),
+              blurRadius: 8,
+              offset: const Offset(0, 4),
+            ),
+          ],
         ),
         child: Row(
           children: [
             // Thumbnail
             _buildThumbnailWidget(video.thumbnailPath),
-            const SizedBox(width: 11),
+            const SizedBox(width: 12),
             // Video info
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text(
                     video.title,
                     style: const TextStyle(
                       color: Colors.black,
-                      fontSize: 18,
+                      fontSize: 16,
                       fontFamily: 'Jost',
-                      fontWeight: FontWeight.w400,
+                      fontWeight: FontWeight.w600,
+                      height: 1.2,
                     ),
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                   ),
-                  Text(
-                    _formatDate(video.sentDate),
-                    style: const TextStyle(
-                      color: Colors.black,
-                      fontSize: 8,
-                      fontFamily: 'Jost',
-                      fontWeight: FontWeight.w300,
-                    ),
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.calendar_today,
+                        size: 14,
+                        color: Colors.grey[600],
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        _formatDate(video.sentDate),
+                        style: TextStyle(
+                          color: Colors.grey[600],
+                          fontSize: 12,
+                          fontFamily: 'Jost',
+                          fontWeight: FontWeight.w400,
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      Icon(
+                        Icons.access_time,
+                        size: 14,
+                        color: Colors.grey[600],
+                      ),
+                      const SizedBox(width: 4),
+                    ],
                   ),
                 ],
               ),
+            ),
+            const SizedBox(width: 8),
+            const Icon(
+              Icons.play_circle_filled,
+              color: Color(0xFF3A567A),
+              size: 30,
             ),
           ],
         ),
@@ -327,27 +517,54 @@ class _SearchedVideosState extends State<SearchedVideos> {
 
   Widget _buildThumbnailWidget(String thumbnailPath) {
     return Container(
-      width: 140,
+      width: 120,
       height: 80,
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(20),
-        color: Colors.grey[300],
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: const Color(0xFF3A567A), width: 1),
       ),
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(12),
         child: Image(
           image: _getThumbnailImage(thumbnailPath),
-          width: 140,
+          width: 120,
           height: 80,
           fit: BoxFit.cover,
-          errorBuilder: (context, error, stackTrace) {
-            // If image fails to load, show a placeholder
+          loadingBuilder: (context, child, loadingProgress) {
+            if (loadingProgress == null) return child;
             return Container(
               color: Colors.grey[300],
-              child: const Icon(
-                Icons.videocam_outlined,
-                color: Colors.grey,
-                size: 40,
+              child: Center(
+                child: CircularProgressIndicator(
+                  color: const Color(0xFF3A567A),
+                  value: loadingProgress.expectedTotalBytes != null
+                      ? loadingProgress.cumulativeBytesLoaded /
+                          loadingProgress.expectedTotalBytes!
+                      : null,
+                ),
+              ),
+            );
+          },
+          errorBuilder: (context, error, stackTrace) {
+            return Container(
+              color: Colors.grey[300],
+              child: const Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.videocam_outlined,
+                    color: Colors.grey,
+                    size: 40,
+                  ),
+                  SizedBox(height: 4),
+                  Text(
+                    'No Thumbnail',
+                    style: TextStyle(
+                      color: Colors.grey,
+                      fontSize: 10,
+                    ),
+                  ),
+                ],
               ),
             );
           },
@@ -362,25 +579,27 @@ class _SearchedVideosState extends State<SearchedVideos> {
     } else if (thumbnailPath.isNotEmpty) {
       return NetworkImage('http://localhost:3000$thumbnailPath');
     } else {
-      // Use AssetImage for placeholder
       return const AssetImage('Asset/Thumbnail-Fake.png');
     }
   }
 
   String _getUploaderText(int? uploader) {
-    return uploader != null ? 'User $uploader' : 'Unknown Uploader';
-  }
-
-  String _formatDuration(int? durationSec) {
-    if (durationSec == null) return 'Duration: Unknown';
-    final duration = Duration(seconds: durationSec);
-    final minutes = duration.inMinutes;
-    final seconds = duration.inSeconds.remainder(60);
-    return '${minutes}m ${seconds}s';
+    return uploader != null ? 'User $uploader' : 'Unknown';
   }
 
   String _formatDate(DateTime? date) {
     if (date == null) return 'Date unknown';
-    return '${date.day}/${date.month}/${date.year}';
+    final now = DateTime.now();
+    final difference = now.difference(date);
+    
+    if (difference.inDays == 0) {
+      return 'Today';
+    } else if (difference.inDays == 1) {
+      return 'Yesterday';
+    } else if (difference.inDays < 7) {
+      return '${difference.inDays} days ago';
+    } else {
+      return '${date.day}/${date.month}/${date.year}';
+    }
   }
 }

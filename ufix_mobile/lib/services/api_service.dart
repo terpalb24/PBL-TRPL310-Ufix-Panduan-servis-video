@@ -3,14 +3,14 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'package:ufix_mobile/services/storage_service.dart';
+import 'package:ufix_mobile/models/tag_model.dart';
 
 class ApiService {
   static String get baseUrl {
     if (Platform.isAndroid) {
       return 'http://10.0.2.2:3001/api'; // Remove /auth
-
     } else {
-      return 'http://localhost:3001/api';
+      return 'http://localhost:3000/api';
     }
   }
 
@@ -30,7 +30,10 @@ class ApiService {
   //            AUTH
   // ================================
   static Future<Map<String, dynamic>> signUp(
-      String email, String displayName, String password) async {
+    String email,
+    String displayName,
+    String password,
+  ) async {
     try {
       final response = await http.post(
         Uri.parse('$baseUrl/auth/signup'),
@@ -64,11 +67,8 @@ class ApiService {
 
       final response = await http.post(
         Uri.parse('$baseUrl/auth/login-mobile'),
-          headers: headers,
-        body: json.encode({
-          'email': email,
-          'password': password,
-        }),
+        headers: headers,
+        body: json.encode({'email': email, 'password': password}),
       );
 
       print("LOGIN STATUS: ${response.statusCode}");
@@ -277,6 +277,35 @@ class ApiService {
       final response = await http.post(uri, headers: headers);
 
       return json.decode(response.body);
+    } catch (e) {
+      return {'success': false, 'message': 'Network error: $e'};
+    }
+  }
+
+  static Future<Map<String, dynamic>> getAllTags() async {
+    try {
+      final headers = await getHeaders();
+      final res = await http.get(
+        Uri.parse('$baseUrl/tag/get'),
+        headers: headers,
+      );
+
+      final response = json.decode(res.body);
+
+      if (response['success'] == true) {
+        // Parse tags into Tag objects
+        final tagsData = response['tags'] as List<dynamic>;
+        final tags = tagsData
+            .map<Tag>((tagMap) => Tag.fromMap(tagMap))
+            .toList();
+
+        return {'success': true, 'tags': tags};
+      } else {
+        return {
+          'success': false,
+          'message': response['message'] ?? 'Failed to load tags',
+        };
+      }
     } catch (e) {
       return {'success': false, 'message': 'Network error: $e'};
     }

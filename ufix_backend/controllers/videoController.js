@@ -31,37 +31,59 @@ const getVideoNew = async (req, res) => {
   console.log("=== getVideoNew called ===");
 
   try {
-    console.log("Testing with simple count query...");
-
-    // First, try a super simple query
-    const [countResult] = await dbPromise.execute(
-      "SELECT COUNT(*) as count FROM video"
-    );
-    console.log("Count result:", countResult[0].count);
-
-    // If that works, try with just 1 field
-    console.log("Testing with single field...");
-    const [simpleVideos] = await dbPromise.execute(
-      "SELECT idVideo FROM video LIMIT 5"
-    );
-    console.log("Simple query result:", simpleVideos);
-
-    // If that works, try the full query
-    console.log("Testing full query...");
-    // UPDATED: Include ALL necessary fields for frontend display
+    // Get the base URL for constructing full thumbnail URLs
+    const baseUrl = `http://${req.get("host")}`;
+    
+    // Updated: Include thumbnailPath in the query
     const [videos] = await dbPromise.execute(`
-      SELECT idVideo, title, deskripsi, videoPath, thumbnailPath, uploader, durationSec, sentDate
+      SELECT 
+        idVideo, 
+        title, 
+        deskripsi,
+        thumbnailPath,
+        sentDate,
+        mime_type
       FROM video 
-      ORDER BY idVideo DESC
+      ORDER BY sentDate DESC
+      LIMIT 20
     `);
-    const count = countResult && countResult[0] ? countResult[0].count : 0;
 
-    console.log("Full query successful, found:", videos.length, "videos");
+    console.log(`Found ${videos.length} videos`);
+
+    // Transform the data to include full thumbnail URLs
+    const videosWithThumbnails = videos.map(video => {
+      let thumbnailUrl = null;
+      
+      // Construct full thumbnail URL if thumbnailPath exists
+      if (video.thumbnailPath) {
+        // Check if it's already a full URL
+        if (video.thumbnailPath.startsWith('http')) {
+          thumbnailUrl = video.thumbnailPath;
+        } else {
+          // Remove leading slash if present and construct URL
+          const cleanPath = video.thumbnailPath.startsWith('/') 
+            ? video.thumbnailPath.substring(1) 
+            : video.thumbnailPath;
+          thumbnailUrl = `${baseUrl}/${cleanPath}`;
+        }
+      }
+      
+      return {
+        idVideo: video.idVideo,
+        title: video.title,
+        deskripsi: video.deskripsi || "",
+        thumbnailPath: thumbnailUrl, // Return full URL
+        sentDate: video.sentDate,
+        mime_type: video.mime_type
+      };
+    });
+
+    console.log("Processed videos with thumbnails:", videosWithThumbnails.length);
 
     res.json({
       success: true,
-      count: videos.length,
-      videos: videos,
+      count: videosWithThumbnails.length,
+      videos: videosWithThumbnails,
     });
   } catch (error) {
     console.error("Error in getVideoNew:", error);
@@ -318,17 +340,12 @@ const getVideoUrl = async (req, res) => {
   try {
     const videoId = req.params.id;
     const userId = req.user?.userId || req.user?.idUser;
+    const baseUrl = `http://${req.get("host")}`;
 
-    console.log(
-      "getVideoUrl called for video ID:",
-      videoId,
-      "User ID:",
-      userId
-    );
+    console.log("getVideoUrl called for video ID:", videoId, "User ID:", userId);
 
-    // Check if video exists - UPDATED: Include deskripsi in the query
-    const query =
-      "SELECT idVideo, title, videoPath, deskripsi FROM video WHERE idVideo = ?";
+    // Updated: Include thumbnailPath in the query
+    const query = "SELECT idVideo, title, videoPath, deskripsi, thumbnailPath FROM video WHERE idVideo = ?";
     const [results] = await dbPromise.execute(query, [videoId]);
 
     if (results.length === 0) {
@@ -339,17 +356,25 @@ const getVideoUrl = async (req, res) => {
     }
 
     const video = results[0];
-    if (!video) {
-      return res.status(404).json({
-        success: false,
-        message: "Video not found",
-      });
+    
+    // Construct thumbnail URL
+    let thumbnailUrl = null;
+    if (video.thumbnailPath) {
+      if (video.thumbnailPath.startsWith('http')) {
+        thumbnailUrl = video.thumbnailPath;
+      } else {
+        const cleanPath = video.thumbnailPath.startsWith('/') 
+          ? video.thumbnailPath.substring(1) 
+          : video.thumbnailPath;
+        thumbnailUrl = `${baseUrl}/${cleanPath}`;
+      }
     }
-    // Generate a short-lived token for video streaming (valid for 1 hour)
+
+    // Generate a short-lived token for video streaming
     const streamToken = jwt.sign(
       {
         videoId: video.idVideo,
-        userId: userId || null, // Include userId if authenticated, null if not
+        userId: userId || null,
         type: "video_stream",
         timestamp: Date.now(),
       },
@@ -358,9 +383,7 @@ const getVideoUrl = async (req, res) => {
     );
 
     // Create the pre-signed URL
-    const streamUrl = `http://${req.get("host")}/api/video/stream/${
-      video.idVideo
-    }?token=${streamToken}`;
+    const streamUrl = `http://${req.get("host")}/api/video/stream/${video.idVideo}?token=${streamToken}`;
 
     console.log("Generated stream URL for video:", video.idVideo);
 
@@ -369,9 +392,10 @@ const getVideoUrl = async (req, res) => {
       video: {
         id: video.idVideo,
         judul: video.title,
-        deskripsi: video.deskripsi || "", // Return deskripsi
-        videoUrl: streamUrl, // Return the pre-signed URL instead
-        requiresAuth: false, // Let Flutter know this URL doesn't need auth headers
+        deskripsi: video.deskripsi || "",
+        thumbnailPath: thumbnailUrl, // Include thumbnail URL
+        videoUrl: streamUrl,
+        requiresAuth: false,
       },
     });
   } catch (error) {

@@ -69,6 +69,8 @@ flutter:
     - Asset/History-24p-3A567A.svg
     - Asset/Settings-24p-3A567A.svg
     - Asset/Thumbnail-Fake.png
+    - Asset/bg-welcome.png
+    - Asset/bg-app.png
 
 
   # An image asset can refer to one or more resolution-specific "variants", see

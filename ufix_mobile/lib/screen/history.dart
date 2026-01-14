@@ -32,7 +32,7 @@ class HistoryThumbnail extends StatelessWidget {
         image: DecorationImage(
           image: thumbnailUrl.isNotEmpty
               ? NetworkImage(thumbnailUrl) as ImageProvider
-              : const AssetImage('assets/images/Thumbnail-Fake.png') as ImageProvider,
+              : const AssetImage('Asset/Thumbnail-Fake.png') as ImageProvider,
           fit: BoxFit.cover,
         ),
       ),
@@ -218,55 +218,89 @@ class _HistoryState extends State<History> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        backgroundColor: const Color(0xFF3A567A),
-        foregroundColor: const Color(0xFFF7F7FA),
-        elevation: 8,
-        leading: Container(
-          margin: const EdgeInsets.all(4),
-          child: IconButton(
-            onPressed: () {
-              Navigator.pop(context);
-            },
-            icon: const Icon(Icons.arrow_back_rounded),
+      body: Container(
+        width: MediaQuery.of(context).size.width,
+        height: MediaQuery.of(context).size.height,
+        decoration: const BoxDecoration(
+          image: DecorationImage(
+            image: AssetImage('Asset/bg-app.png'),
+            fit: BoxFit.cover,
           ),
         ),
-        title: const Text(
-          'History',
-          style: TextStyle(
-            color: Color(0xFFF7F7FA),
-            fontFamily: 'Kodchasan',
-            fontSize: 24,
-            fontWeight: FontWeight.w500,
-          ),
-        ),
-        actions: [
-          if (_historyVideos.isNotEmpty)
-            IconButton(
-              onPressed: _clearHistory,
-              icon: const Icon(Icons.delete_outline),
-              tooltip: 'Clear all history',
+        child: Column(
+          children: [
+            // Custom AppBar
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.9),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.1),
+                    blurRadius: 4,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: Row(
+                children: [
+                  IconButton(
+                    onPressed: () {
+                      Navigator.pop(context);
+                    },
+                    icon: const Icon(
+                      Icons.arrow_back_ios,
+                      color: Color(0xFF3A567A),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  const Text(
+                    'History',
+                    style: TextStyle(
+                      color: Color(0xFF3A567A),
+                      fontFamily: 'Kodchasan',
+                      fontSize: 24,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  const Spacer(),
+                  if (_historyVideos.isNotEmpty)
+                    IconButton(
+                      onPressed: _clearHistory,
+                      icon: const Icon(
+                        Icons.delete_outline,
+                        color: Color(0xFF3A567A),
+                      ),
+                      tooltip: 'Clear all history',
+                    ),
+                ],
+              ),
             ),
-        ],
+            
+            // Main Content
+            Expanded(
+              child: _buildBody(),
+            ),
+          ],
+        ),
       ),
-      body: _buildBody(),
     );
   }
 
   Widget _buildBody() {
     if (_isLoading) {
-      return const Center(
+      return Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             CircularProgressIndicator(
-              color: Color(0xFF3A567A),
+              color: const Color(0xFF3A567A),
             ),
-            SizedBox(height: 16),
+            const SizedBox(height: 16),
             Text(
               'Loading history...',
               style: TextStyle(
-                color: Color(0xFF3A567A),
+                color: const Color(0xFF3A567A),
                 fontFamily: 'Jost',
               ),
             ),
@@ -286,26 +320,40 @@ class _HistoryState extends State<History> {
               size: 60,
             ),
             const SizedBox(height: 16),
-            Text(
-              _errorMessage,
-              style: const TextStyle(
-                color: Color(0xFF3A567A),
-                fontSize: 16,
-                fontFamily: 'Jost',
+            Container(
+              padding: const EdgeInsets.all(16),
+              margin: const EdgeInsets.symmetric(horizontal: 24),
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.9),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: Colors.red, width: 1),
               ),
-              textAlign: TextAlign.center,
+              child: Text(
+                _errorMessage,
+                style: const TextStyle(
+                  color: Color(0xFF3A567A),
+                  fontSize: 16,
+                  fontFamily: 'Jost',
+                ),
+                textAlign: TextAlign.center,
+              ),
             ),
             const SizedBox(height: 24),
             ElevatedButton(
               onPressed: () => _loadHistory(),
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFF3A567A),
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
               ),
               child: const Text(
                 'Try Again',
                 style: TextStyle(
                   color: Colors.white,
                   fontFamily: 'Jost',
+                  fontSize: 16,
                 ),
               ),
             ),
@@ -316,50 +364,72 @@ class _HistoryState extends State<History> {
 
     if (_historyVideos.isEmpty) {
       return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.history_toggle_off,
-              size: 100,
-              color: Colors.grey[400],
-            ),
-            const SizedBox(height: 24),
-            const Text(
-              'No watch history yet',
-              style: TextStyle(
-                color: Color(0xFF3A567A),
-                fontSize: 20,
-                fontFamily: 'Kodchasan',
-                fontWeight: FontWeight.w600,
+        child: Container(
+          padding: const EdgeInsets.all(24),
+          margin: const EdgeInsets.symmetric(horizontal: 24),
+          decoration: BoxDecoration(
+            color: Colors.white.withOpacity(0.9),
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: const Color(0xFF3A567A), width: 1),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.1),
+                blurRadius: 8,
+                offset: const Offset(0, 4),
               ),
-            ),
-            const SizedBox(height: 12),
-            const Text(
-              'Videos you watch will appear here',
-              style: TextStyle(
-                color: Colors.grey,
-                fontSize: 14,
-                fontFamily: 'Jost',
+            ],
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                Icons.history_toggle_off,
+                size: 100,
+                color: Colors.grey[400],
               ),
-            ),
-            const SizedBox(height: 24),
-            ElevatedButton(
-              onPressed: () {
-                Navigator.pop(context); // Go back to home
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF3A567A),
-              ),
-              child: const Text(
-                'Browse Videos',
+              const SizedBox(height: 24),
+              const Text(
+                'No watch history yet',
                 style: TextStyle(
-                  color: Colors.white,
-                  fontFamily: 'Jost',
+                  color: Color(0xFF3A567A),
+                  fontSize: 20,
+                  fontFamily: 'Kodchasan',
+                  fontWeight: FontWeight.w600,
                 ),
               ),
-            ),
-          ],
+              const SizedBox(height: 12),
+              const Text(
+                'Videos you watch will appear here',
+                style: TextStyle(
+                  color: Colors.grey,
+                  fontSize: 14,
+                  fontFamily: 'Jost',
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 24),
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.pop(context); // Go back to home
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF3A567A),
+                  padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                ),
+                child: const Text(
+                  'Browse Videos',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontFamily: 'Jost',
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       );
     }
@@ -368,8 +438,20 @@ class _HistoryState extends State<History> {
       children: [
         // Stats banner
         Container(
+          margin: const EdgeInsets.all(16),
           padding: const EdgeInsets.all(16),
-          color: const Color(0xFFEFF7FC),
+          decoration: BoxDecoration(
+            color: Colors.white.withOpacity(0.9),
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: const Color(0xFF3A567A), width: 1),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.1),
+                blurRadius: 8,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -387,8 +469,8 @@ class _HistoryState extends State<History> {
                   ),
                   Text(
                     '${_historyVideos.length} videos',
-                    style: TextStyle(
-                      color: const Color(0xFF3A567A),
+                    style: const TextStyle(
+                      color: Color(0xFF3A567A),
                       fontSize: 20,
                       fontFamily: 'Kodchasan',
                       fontWeight: FontWeight.w600,
@@ -420,8 +502,9 @@ class _HistoryState extends State<History> {
           child: RefreshIndicator(
             onRefresh: () => _loadHistory(),
             color: const Color(0xFF3A567A),
+            backgroundColor: Colors.white.withOpacity(0.7),
             child: ListView.builder(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               itemCount: _historyVideos.length + (_hasMore ? 1 : 0),
               itemBuilder: (context, index) {
                 if (index == _historyVideos.length) {
@@ -443,19 +526,18 @@ class _HistoryState extends State<History> {
       onTap: () => _onVideoTap(video),
       child: Container(
         margin: const EdgeInsets.only(bottom: 12),
-        width: double.infinity,
-        height: 100,
         padding: const EdgeInsets.all(12),
-        decoration: ShapeDecoration(
-          gradient: const LinearGradient(
-            begin: Alignment(0.98, -0.00),
-            end: Alignment(0.02, 1.00),
-            colors: [Color(0xFFEFF7FC), Color(0xFFF7F7FA)],
-          ),
-          shape: RoundedRectangleBorder(
-            side: const BorderSide(width: 1, color: Color(0x333A567A)),
-            borderRadius: BorderRadius.circular(20),
-          ),
+        decoration: BoxDecoration(
+          color: Colors.white.withOpacity(0.9),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(width: 1, color: const Color(0xFF3A567A).withOpacity(0.3)),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.1),
+              blurRadius: 6,
+              offset: const Offset(0, 3),
+            ),
+          ],
         ),
         child: Row(
           children: [
@@ -479,6 +561,7 @@ class _HistoryState extends State<History> {
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                   ),
+                  const SizedBox(height: 4),
                   Row(
                     children: [
                       Icon(
@@ -498,6 +581,7 @@ class _HistoryState extends State<History> {
                       ),
                     ],
                   ),
+                  const SizedBox(height: 2),
                   Text(
                     video.sentDate != null
                         ? 'Uploaded: ${video.sentDate!.day}/${video.sentDate!.month}/${video.sentDate!.year}'
@@ -522,13 +606,20 @@ class _HistoryState extends State<History> {
     if (_loadingMore) {
       return Container(
         padding: const EdgeInsets.symmetric(vertical: 16),
-        child: const Center(
-          child: SizedBox(
-            width: 24,
-            height: 24,
-            child: CircularProgressIndicator(
-              strokeWidth: 2,
-              color: Color(0xFF3A567A),
+        child: Center(
+          child: Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.9),
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: const SizedBox(
+              width: 24,
+              height: 24,
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+                color: Color(0xFF3A567A),
+              ),
             ),
           ),
         ),
@@ -538,28 +629,26 @@ class _HistoryState extends State<History> {
     return GestureDetector(
       onTap: () => _loadHistory(loadMore: true),
       child: Container(
-        margin: const EdgeInsets.only(top: 8),
-        width: 120,
-        height: 36,
-        decoration: ShapeDecoration(
-          gradient: const LinearGradient(
-            begin: Alignment(0.50, 1.00),
-            end: Alignment(0.50, 0.00),
-            colors: [
-              Color(0xFFADE7F7),
-              Color(0xFFF7F7FA),
-            ],
-          ),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(30),
-          ),
+        margin: const EdgeInsets.only(top: 8, bottom: 16),
+        padding: const EdgeInsets.symmetric(vertical: 12),
+        decoration: BoxDecoration(
+          color: Colors.white.withOpacity(0.9),
+          borderRadius: BorderRadius.circular(30),
+          border: Border.all(color: const Color(0xFF3A567A), width: 1),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.1),
+              blurRadius: 6,
+              offset: const Offset(0, 3),
+            ),
+          ],
         ),
         child: const Center(
           child: Text(
             'Load More',
             style: TextStyle(
               color: Color(0xFF3A567A),
-              fontSize: 13,
+              fontSize: 14,
               fontFamily: 'Jost',
               fontWeight: FontWeight.w500,
             ),

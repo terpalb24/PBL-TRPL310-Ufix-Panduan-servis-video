@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:ufix_mobile/services/api_service.dart';
 import 'package:ufix_mobile/services/auth_manager.dart';
 import 'package:ufix_mobile/models/video_model.dart';
-import 'dart:io';
 
 class Homepage extends StatefulWidget {
   const Homepage({super.key});
@@ -25,23 +24,26 @@ class _HomepageState extends State<Homepage> {
   @override
   void initState() {
     super.initState();
-    _loadVideos();
     _loadUserData();
+    _loadAllData();
   }
 
-  Future<void> _loadVideos() async {
+  Future<void> _loadAllData() async {
+    await Future.wait([
+      _loadNewVideos(),
+      _loadWatchedVideos(),
+    ]);
+  }
+
+  Future<void> _loadNewVideos() async {
     setState(() {
-      _isLoading = true;
-      _error = '';
-      _debugInfo = 'Starting API call...';
+      _isLoadingNewVideos = true;
+      _errorNewVideos = '';
     });
 
     try {
-      _debugInfo = 'Calling API...';
       final result = await ApiService.getNewVideos();
       print('DEBUG: New videos result: ${result['success']}');
-      
-      _debugInfo = 'API response received. Success: ${result['success']}';
       
       if (result['success'] == true) {
         final videosData = result['videos'] as List<dynamic>?;
@@ -54,37 +56,35 @@ class _HomepageState extends State<Homepage> {
             try {
               final video = Video.fromJson(Map<String, dynamic>.from(videoData));
               parsedVideos.add(video);
-              _debugInfo = 'Parsed video: ID ${video.idVideo}, Title: ${video.title}';
             } catch (e) {
-              _debugInfo = 'Error parsing video: $e';
+              print('Error parsing video: $e');
             }
           }
           
           setState(() {
-            _videos = parsedVideos;
-            _isLoading = false;
-            _debugInfo = 'Loaded ${_videos.length} videos successfully';
+            _newVideos = parsedVideos;
+            _isLoadingNewVideos = false;
           });
+          
+          // Load bookmark status for new videos
+          _loadBookmarkStatus(parsedVideos);
         } else {
           setState(() {
-            _isLoading = false;
-            _error = 'No videos found in response';
-            _debugInfo = 'No videos in API response';
+            _isLoadingNewVideos = false;
+            _errorNewVideos = 'No new videos found';
           });
         }
       } else {
         setState(() {
-          _isLoading = false;
-          _error = result['message'] ?? 'Failed to load videos';
-          _debugInfo = 'API returned error: $_error';
+          _isLoadingNewVideos = false;
+          _errorNewVideos = result['message'] ?? 'Failed to load new videos';
         });
       }
     } catch (e) {
       print('Error loading new videos: $e');
       setState(() {
-        _isLoading = false;
-        _error = 'Error loading videos: $e';
-        _debugInfo = 'Exception: $e';
+        _isLoadingNewVideos = false;
+        _errorNewVideos = 'Error loading videos: $e';
       });
     }
   }
@@ -755,52 +755,6 @@ class _HomepageState extends State<Homepage> {
                             ),
                           ],
                         ),
-                      )
-                    else if (_videos.isEmpty)
-                      SliverToBoxAdapter(
-                        child: Container(
-                          height: 200,
-                          child: Center(
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(Icons.videocam_off, color: Colors.grey, size: 50),
-                                SizedBox(height: 16),
-                                Text(
-                                  'No videos available',
-                                  style: TextStyle(
-                                    color: Colors.grey,
-                                    fontSize: 16,
-                                  ),
-                                ),
-                                SizedBox(height: 16),
-                                ElevatedButton(
-                                  onPressed: _loadVideos,
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: Color(0xFF3A567A),
-                                  ),
-                                  child: Text(
-                                    'Refresh',
-                                    style: TextStyle(color: Colors.white),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      )
-                    else
-                      SliverList(
-                        delegate: SliverChildBuilderDelegate(
-                          (context, index) {
-                            final video = _videos[index];
-                            return Padding(
-                              padding: EdgeInsets.fromLTRB(16, 10, 16, 10),
-                              child: _buildVideoItem(context, video),
-                            );
-                          },
-                          childCount: _videos.length,
-                        ),
                       ),
                       // Action Icons
                       IconButton(
@@ -876,18 +830,5 @@ class _HomepageState extends State<Homepage> {
         ),
       ),
     );
-  }
-
-  String _formatDuration(int? durationSec) {
-    if (durationSec == null) return 'Duration: Unknown';
-    final duration = Duration(seconds: durationSec);
-    final minutes = duration.inMinutes;
-    final seconds = duration.inSeconds.remainder(60);
-    return '${minutes}m ${seconds}s';
-  }
-
-  String _formatDate(DateTime? date) {
-    if (date == null) return 'Date unknown';
-    return '${date.day}/${date.month}/${date.year}';
   }
 }
